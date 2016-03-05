@@ -3,13 +3,10 @@ package com.onsmith.aar;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import java.io.InputStream;
 import java.util.Scanner;
-
+import java.io.InputStream;
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
-
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -17,6 +14,9 @@ import javax.swing.WindowConstants;
 
 
 public class VideoPlayer extends TimerTask {
+  private double iMin = Double.POSITIVE_INFINITY,
+                 iMax = Double.NEGATIVE_INFINITY; 
+  
   private int x, y, dt, d;
   private int tNow, w, h, fps, clock;
   private int[][] tNext;
@@ -46,8 +46,11 @@ public class VideoPlayer extends TimerTask {
   /**
    * Method to convert a (dt, d) pair to an intensity value
    */
-  public byte intensityTransform(int dt, int d) {
-    return (byte) (2450*Math.pow(2, d)/dt);
+  public int intensityTransform(int dt, int d) {
+    double iRaw = Math.pow(2, d)/dt;
+    iMin = Math.min(iMin, iRaw);
+    iMax = Math.max(iMax, iRaw);
+    return (int) (255*(iRaw - iMin)/(iMax - iMin));
   }
   
   
@@ -70,13 +73,14 @@ public class VideoPlayer extends TimerTask {
     tNow += clock/fps;
     
     // Prepare next frame
-    byte i;
+    int intensity, gray;
     while (tNext[x][y] < tNow) {
-      i = intensityTransform(dt, d);
-      image.setRGB(2*x,   2*y,   (i << 16) | (i << 8) | i);
-      image.setRGB(2*x,   2*y+1, (i << 16) | (i << 8) | i);
-      image.setRGB(2*x+1, 2*y,   (i << 16) | (i << 8) | i);
-      image.setRGB(2*x+1, 2*y+1, (i << 16) | (i << 8) | i);
+      intensity = intensityTransform(dt, d);
+      gray = getIntFromColor(intensity, intensity, intensity);
+      image.setRGB(2*x,   2*y,   gray);
+      image.setRGB(2*x,   2*y+1, gray);
+      image.setRGB(2*x+1, 2*y,   gray);
+      image.setRGB(2*x+1, 2*y+1, gray);
       tNext[x][y] += dt;
       
       x  = scanner.nextInt();
@@ -105,7 +109,22 @@ public class VideoPlayer extends TimerTask {
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
     
+    // Priming read
+    x  = scanner.nextInt();
+    y  = scanner.nextInt();
+    dt = scanner.nextInt();
+    d  = scanner.nextInt();
+    
     // Begin running the timer
     (new Timer(true)).scheduleAtFixedRate(this, new Date(), 1000/fps);
   }
+  
+  
+  public static int getIntFromColor(int r, int g, int b) {
+    r = (r << 16) & 0x00FF0000; // Shift red 16-bits and mask out other stuff
+    g = (g << 8)  & 0x0000FF00; // Shift Green 8-bits and mask out other stuff
+    b =  b        & 0x000000FF; // Mask out anything not blue.
+
+    return 0xFF000000 | r | g | b; // 0xFF000000 for 100% Alpha. Bitwise OR everything together.
+}
 }

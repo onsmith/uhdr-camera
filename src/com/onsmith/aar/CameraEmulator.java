@@ -15,8 +15,8 @@ public class CameraEmulator implements Runnable {
   // x, y, wavelength, period
   private static final int waves[][] = {
     { 10,   8,  16},
-    //{195, 187,  64},
-    //{165,  40,  32},
+    {195, 187,  64},
+    {165,  40,  32},
   };
   
   
