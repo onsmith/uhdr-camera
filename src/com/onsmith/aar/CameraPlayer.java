@@ -143,8 +143,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
   
   
   /**
-   * Static function to convert rgb values into a single integer via byte
-   *   manipulation
+   * Static method to package three color bytes as a single integer
    */
   public static int getIntFromColor(int r, int g, int b) {
     r = (r << 16) & 0x00FF0000; // Shift red 16-bits and mask out other stuff
