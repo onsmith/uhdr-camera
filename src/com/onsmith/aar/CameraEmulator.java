@@ -5,14 +5,14 @@ import java.io.PrintWriter;
 import java.util.PriorityQueue;
 
 
-public class CameraEmulator implements Runnable {
+public class CameraEmulator implements Runnable, DataSource {
   private static final double l      = Math.pow(2, -5);  // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
   private static final double T      = 1.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   
-  // x, y, wavelength, period
+  // x, y, wavelength
   private static final int waves[][] = {
     { 10,   8,  16},
     {195, 187,  64},
@@ -30,6 +30,8 @@ public class CameraEmulator implements Runnable {
   private PriorityQueue<PixelFireEvent> queue; // Heap to keep track of which pixel will fire next
   
   private PrintWriter  writer; // PrintWriter object to handle output
+  
+  private Thread thread;
   
   
   /**
@@ -163,6 +165,16 @@ public class CameraEmulator implements Runnable {
    * Method to start a new thread to run the camera emulator
    */
   public void startThread() {
-    (new Thread(this)).start();
+    stopThread();
+    thread = new Thread(this);
+    thread.start();
+  }
+  
+  
+  /**
+   * Method to stop the current thread
+   */
+  public void stopThread() {
+    if (thread != null) thread.interrupt();
   }
 }
