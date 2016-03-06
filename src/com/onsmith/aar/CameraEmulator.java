@@ -6,17 +6,18 @@ import java.util.PriorityQueue;
 
 
 public class CameraEmulator implements Runnable, DataSource {
-  private static final double l      = Math.pow(2, -5);  // Minimum value of the intensity function
-  private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
-  private static final double T      = 1.1;              // Wave period
+  private static final double l      = Math.pow(2,  0);  // Minimum value of the intensity function
+  private static final double r      = Math.pow(2,  9);  // Maximum value of the intensity function
+  private static final double T      = 0.5;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
+  private static final int    iD     = 2;                // Initial value of d
   
   
   // x, y, wavelength
   private static final int waves[][] = {
-    { 10,   8,  45},
-    {195, 187,  64},
-    {165,  40,  32},
+    {  0,   0,  5},
+    { 50,  50,  5},
+    { 60,  25,  5},
   };
   
   
@@ -118,10 +119,10 @@ public class CameraEmulator implements Runnable, DataSource {
    * Method to run the emulator
    */
   public void run() {
-    // Set D to all 5's
+    // Initialize D matrix
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        D[i][j] = 5;
+        D[i][j] = iD;
     
     // Load every pixel into the queue
     {
@@ -150,13 +151,12 @@ public class CameraEmulator implements Runnable, DataSource {
         
         // Fire pixel
         writer.printf("%d %d %d %d\n", x, y, dt[x][y], d); // Ax Ay dt D
-        //System.out.printf("%3d %3d %5d %2d\n", x, y, dt[x][y], d); // Ax Ay dt D
         
         // Adjust D
-        if (D[x][y] > 1 && dt[x][y] > clock/25) // nudge D if dt is slower than 25 fps
-          D[x][y]--;
-        else if (dt[x][y] < clock/35) // nudge D if dt is faster than 35 fps
-          D[x][y]++;
+        //if (D[x][y] > 1 && dt[x][y] > clock/25) // nudge D if dt is slower than 25 fps
+        //  D[x][y]--;
+        //else if (dt[x][y] < clock/35) // nudge D if dt is faster than 35 fps
+        //  D[x][y]++;
         
         // Prepare next pixel to fire
         pfe.t(findRoot(x, y, t));
