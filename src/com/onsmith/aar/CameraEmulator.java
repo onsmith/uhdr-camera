@@ -8,14 +8,14 @@ import java.util.PriorityQueue;
 public class CameraEmulator implements Runnable {
   private static final double l      = Math.pow(2, -5);  // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
-  private static final double T      = 1.1;              // Wave period
+  private static final double T      = 2.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   
   // x, y, wavelength, period
   private static final int waves[][] = {
-    { 10,   8,  16},
-    {195, 187,  64},
+    //{ 10,   8,  16},
+    //{195, 187,  64},
     {165,  40,  32},
   };
   
@@ -148,6 +148,13 @@ public class CameraEmulator implements Runnable {
         
         // Fire pixel
         writer.printf("%d %d %d %d\n", x, y, dt[x][y], d); // Ax Ay dt D
+        //System.out.printf("%3d %3d %5d %2d\n", x, y, dt[x][y], d); // Ax Ay dt D
+        
+        // Adjust D
+        if (D[x][y] > 1 && dt[x][y] > clock/20)
+          D[x][y]--;
+        else if (dt[x][y] < clock/30)
+          D[x][y]++;
         
         // Prepare next pixel to fire
         pfe.t(findRoot(x, y, t));

@@ -14,7 +14,7 @@ public class Controller {
    */
   public static final int w     = 200;   // Width of camera, in pixels
   public static final int h     = 200;   // Height of camera, in pixels
-  public static final int clock = 18000; // Camera clock speed, in hertz
+  public static final int clock = 20000; // Camera clock speed, in hertz
   
   
   public static void main(String [] args) throws IOException {
