@@ -120,6 +120,9 @@ public class VideoPlayer extends TimerTask {
   }
   
   
+  /**
+   * Static method to package three color bytes as a single integer
+   */
   public static int getIntFromColor(int r, int g, int b) {
     r = (r << 16) & 0x00FF0000; // Shift red 16-bits and mask out other stuff
     g = (g << 8)  & 0x0000FF00; // Shift Green 8-bits and mask out other stuff

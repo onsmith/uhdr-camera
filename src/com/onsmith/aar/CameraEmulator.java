@@ -6,16 +6,16 @@ import java.util.PriorityQueue;
 
 
 public class CameraEmulator implements Runnable {
-  private static final double l      = Math.pow(2, -5);  // Minimum value of the intensity function
-  private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
-  private static final double T      = 2.1;              // Wave period
+  private static final double l      = Math.pow(2,  0);  // Minimum value of the intensity function
+  private static final double r      = Math.pow(2, 12);  // Maximum value of the intensity function
+  private static final double T      = 1.2;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   
   // x, y, wavelength, period
   private static final int waves[][] = {
-    //{ 10,   8,  16},
-    //{195, 187,  64},
+    { 10,   8,  45},
+    {195, 187,  64},
     {165,  40,  32},
   };
   
@@ -151,9 +151,9 @@ public class CameraEmulator implements Runnable {
         //System.out.printf("%3d %3d %5d %2d\n", x, y, dt[x][y], d); // Ax Ay dt D
         
         // Adjust D
-        if (D[x][y] > 1 && dt[x][y] > clock/20)
+        if (D[x][y] > 1 && dt[x][y] > clock/25) // nudge D if dt is slower than 25 fps
           D[x][y]--;
-        else if (dt[x][y] < clock/30)
+        else if (dt[x][y] < clock/35) // nudge D if dt is faster than 35 fps
           D[x][y]++;
         
         // Prepare next pixel to fire
