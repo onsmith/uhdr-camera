@@ -1,11 +1,11 @@
 package com.onsmith.aar;
 
 import java.util.Date;
-import java.util.NoSuchElementException;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Scanner;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.DataInputStream;
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
 
@@ -20,7 +20,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
   private int tNow, w, h, fps, clock;
   private int[][] tNext;
   
-  private Scanner scanner;
+  private DataInputStream reader;
   
   private JFrame frame;
   private BufferedImage image;
@@ -60,7 +60,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
    * Method to set the input stream
    */
   public void pipeFrom(InputStream stream) {
-    this.scanner = new Scanner(stream);
+    reader = new DataInputStream(stream);
   }
   
   
@@ -77,26 +77,25 @@ public class CameraPlayer extends TimerTask implements DataSink {
     // Prepare next frame
     int intensity, gray;
 
-    try {
-      while (tNext[x][y] < tNow) {
-        intensity = intensityTransform.toInt(dt, d);
-        gray = getIntFromColor(intensity, intensity, intensity);
-        image.setRGB(2*x,   2*y,   gray);
-        image.setRGB(2*x,   2*y+1, gray);
-        image.setRGB(2*x+1, 2*y,   gray);
-        image.setRGB(2*x+1, 2*y+1, gray);
-        tNext[x][y] += dt;
-        
-        x  = scanner.nextInt();
-        y  = scanner.nextInt();
-        dt = scanner.nextInt();
-        d  = scanner.nextInt();
+    while (tNext[x][y] < tNow) {
+      intensity = intensityTransform.toInt(dt, d);
+      gray = getIntFromColor(intensity, intensity, intensity);
+      image.setRGB(2*x,   2*y,   gray);
+      image.setRGB(2*x,   2*y+1, gray);
+      image.setRGB(2*x+1, 2*y,   gray);
+      image.setRGB(2*x+1, 2*y+1, gray);
+      tNext[x][y] += dt;
+      
+      try {
+        x  = reader.readInt();
+        y  = reader.readInt();
+        dt = reader.readInt();
+        d  = reader.readInt();
       }
-    }
-    catch (NoSuchElementException e) {
-      System.out.println("End of input.");
-      scanner.close();
-      stopThread();
+      catch (IOException e) {
+        System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
+        stopThread();
+      }
     }
   }
   
@@ -123,10 +122,16 @@ public class CameraPlayer extends TimerTask implements DataSink {
     frame.setVisible(true);
     
     // Priming read
-    x  = scanner.nextInt();
-    y  = scanner.nextInt();
-    dt = scanner.nextInt();
-    d  = scanner.nextInt();
+    try {
+      x  = reader.readInt();
+      y  = reader.readInt();
+      dt = reader.readInt();
+      d  = reader.readInt();
+    }
+    catch (IOException e) {
+      System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
+      stopThread();
+    }
     
     // Begin running the timer
     timer = new Timer(true);

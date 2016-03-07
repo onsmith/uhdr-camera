@@ -12,7 +12,7 @@ public class Controller {
    */
   public static final int w     = 100;        // Width of camera, in pixels
   public static final int h     = 100;        // Height of camera, in pixels
-  public static final int clock = 20000; // Camera clock speed, in hertz
+  public static final int clock = 1000000000; // Camera clock speed, in hertz
   
   
   public static void main(String [] args) throws IOException {
@@ -21,17 +21,17 @@ public class Controller {
     PipedInputStream  pipeIn  = new PipedInputStream(pipeOut);
     
     // Pipe data from emulator
-    DataSource camera = new CameraEmulator(w, h, clock);
-    camera.pipeTo(pipeOut);
-    camera.startThread();
+    //DataSource camera = new CameraEmulator(w, h, clock);
+    //camera.pipeTo(pipeOut);
+    //camera.startThread();
     
     // Pipe data from disk
-    //DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/3wave/D_3/outFrameLess.txt");
-    //file.pipeTo(pipeOut);
-    //file.startThread();
+    DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/3wave/D_3/outFrameLess.txt");
+    file.pipeTo(pipeOut);
+    file.startThread();
     
     // Pipe data to video player
-    DataSink player = new CameraPlayer(w, h, clock, 30, -30, 230); // width, height, clock speed, fps, iMin, iMax
+    DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
     player.pipeFrom(pipeIn);
     player.startThread();
   }

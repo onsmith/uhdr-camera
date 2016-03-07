@@ -1,16 +1,17 @@
 package com.onsmith.aar;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.DataOutputStream;
 import java.util.PriorityQueue;
 
 
 public class CameraEmulator implements Runnable, DataSource {
-  private static final double l      = Math.pow(2,  0);  // Minimum value of the intensity function
-  private static final double r      = Math.pow(2,  9);  // Maximum value of the intensity function
+  private static final double l      = Math.pow(2,  8);  // Minimum value of the intensity function
+  private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
   private static final double T      = 0.5;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
-  private static final int    iD     = 2;                // Initial value of d
+  private static final int    iD     = 4;                // Initial value of d
   
   
   // x, y, wavelength
@@ -30,9 +31,23 @@ public class CameraEmulator implements Runnable, DataSource {
 
   private PriorityQueue<PixelFireEvent> queue; // Heap to keep track of which pixel will fire next
   
-  private PrintWriter  writer; // PrintWriter object to handle output
+  private DataOutputStream writer; // DataOutputStream object to handle output
   
-  private Thread thread;
+  private Thread thread; // Every CameraEmulator instance gets its own thread
+  
+  
+  /**
+   * Constructor
+   */
+  public CameraEmulator(int w, int h, int clock) {
+    this.w     = w;
+    this.h     = h;
+    this.clock = clock;
+    
+    D     = new Integer[w][h];
+    dt    = new Integer[w][h];
+    queue = new PriorityQueue<PixelFireEvent>();
+  }
   
   
   /**
@@ -94,24 +109,10 @@ public class CameraEmulator implements Runnable, DataSource {
   
   
   /**
-   * Constructor
-   */
-  public CameraEmulator(int w, int h, int clock) {
-    this.w     = w;
-    this.h     = h;
-    this.clock = clock;
-    
-    D     = new Integer[w][h];
-    dt    = new Integer[w][h];
-    queue = new PriorityQueue<PixelFireEvent>();
-  }
-  
-  
-  /**
    * Method to set the output stream
    */
   public void pipeTo(OutputStream stream) {
-    this.writer = new PrintWriter(stream);
+    this.writer = new DataOutputStream(stream);
   }
   
   
@@ -150,7 +151,15 @@ public class CameraEmulator implements Runnable, DataSource {
         d = pfe.d();
         
         // Fire pixel
-        writer.printf("%d %d %d %d\n", x, y, dt[x][y], d); // Ax Ay dt D
+        try {
+          writer.writeInt(x);
+          writer.writeInt(y);
+          writer.writeInt(dt[x][y]);
+          writer.writeInt(d);
+        } catch (IOException e) {
+          System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
+          stopThread();
+        }
         
         // Adjust D
         //if (D[x][y] > 1 && dt[x][y] > clock/25) // nudge D if dt is slower than 25 fps
