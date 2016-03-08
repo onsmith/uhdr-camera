@@ -21,14 +21,14 @@ public class Controller {
     PipedInputStream  pipeIn  = new PipedInputStream(pipeOut);
     
     // Pipe data from emulator
-    DataSource camera = new CameraEmulator(w, h, clock);
-    camera.pipeTo(pipeOut);
-    camera.startThread();
+    //DataSource camera = new CameraEmulator(w, h, clock);
+    //camera.pipeTo(pipeOut);
+    //camera.startThread();
     
     // Pipe data from disk
-    //DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/3wave/D_3/outFrameLess.txt");
-    //file.pipeTo(pipeOut);
-    //file.startThread();
+    DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/3wave/D_3/outFrameLess.txt");
+    file.pipeTo(pipeOut);
+    file.startThread();
     
     // Pipe data to video player
     DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax

@@ -98,6 +98,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
       catch (IOException e) {
         System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
         stopThread();
+        return;
       }
     }
   }
@@ -133,7 +134,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
     }
     catch (IOException e) {
       System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
-      stopThread();
+      return;
     }
     
     // Begin running the timer
@@ -146,7 +147,10 @@ public class CameraPlayer extends TimerTask implements DataSink {
    * Method to stop the current thread
    */
   public void stopThread() {
-    if (timer != null) timer.cancel();
+    if (timer != null) {
+      timer.cancel();
+      timer.purge();
+    }
   }
   
   

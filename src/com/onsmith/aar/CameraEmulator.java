@@ -153,6 +153,7 @@ public class CameraEmulator implements Runnable, DataSource {
         } catch (IOException e) {
           System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
           stopThread();
+          return;
         }
         
         // Adjust D

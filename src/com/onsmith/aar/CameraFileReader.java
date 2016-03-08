@@ -60,10 +60,12 @@ public class CameraFileReader implements Runnable, DataSource {
     catch (IOException e) {
       System.out.println("CameraFileReader could not write to output stream. Thread terminated.");
       stopThread();
+      return;
     }
     catch (NoSuchElementException e) {
       System.out.println("CameraFileReader could not read from given file. Thread terminated.");
       stopThread();
+      return;
     }
   }
   
