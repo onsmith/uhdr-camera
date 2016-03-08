@@ -42,19 +42,17 @@ public class CameraFileReader implements Runnable, DataSource {
     int x, y, t, d, dt;
     try {
       while (true) {
-        x = reader.nextInt();
         y = reader.nextInt();
+        x = reader.nextInt();
         d = reader.nextInt();
         t = reader.nextInt();
         
         dt = t - tLast[x][y];
         
-        if (dt > 0) {
-          writer.writeInt(x);
-          writer.writeInt(y);
-          writer.writeInt(dt);
-          writer.writeInt(d);
-        }
+        writer.writeInt(x);
+        writer.writeInt(y);
+        writer.writeInt(dt);
+        writer.writeInt(d);
         
         tLast[x][y] = t;
       }

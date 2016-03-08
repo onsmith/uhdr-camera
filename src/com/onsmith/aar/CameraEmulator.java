@@ -7,9 +7,9 @@ import java.util.PriorityQueue;
 
 
 public class CameraEmulator implements Runnable, DataSource {
-  private static final double l      = Math.pow(2,  8);  // Minimum value of the intensity function
-  private static final double r      = Math.pow(2, 10);  // Maximum value of the intensity function
-  private static final double T      = 0.5;              // Wave period
+  private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
+  private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
+  private static final double T      = 0.2;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   private static final int    iD     = 4;                // Initial value of d
   
@@ -55,16 +55,12 @@ public class CameraEmulator implements Runnable, DataSource {
    *   next time for the given pixel to fire
    */
   private double f(int x, int y, double ti, double tf) {
-    double ret = 0;
+    double waveSum = 0;
     for (int i=0; i<waves.length; i++) {
-      ret += wave(
-        x, y, ti, tf,                   // x, y, ti, tf
-        waves[i][0], waves[i][1],       // x, y of wave center
-        l/waves.length, r/waves.length, // min intensity, max intensity
-        waves[i][2], T                  // wavelength, period
-      );
+      waveSum += Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(waves[i][0]-x, 2) + Math.pow(waves[i][1]-y, 2))/waves[i][2] + tf/T))
+               - Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(waves[i][0]-x, 2) + Math.pow(waves[i][1]-y, 2))/waves[i][2] + ti/T));
     }
-    return ret - Math.pow(D[x][y], 2);
+    return (r-l)*T/(4.0*Math.PI*waves.length)*waveSum  + (l+r)*(tf-ti)/2 - Math.pow(2, D[x][y]);
   }
   
   
@@ -80,10 +76,8 @@ public class CameraEmulator implements Runnable, DataSource {
    * Helper function that calculates the definite integral of a single wave
    */
   private double wave(int x, int y, double ti, double tf, int a, int b, double l, double r, int lambda, double T) {
-    double factor = T*(r-l)/(4.0*Math.PI);
-    double waves = Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + tf/T))
-                 - Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + ti/T));
-    return factor*waves + (l + 0.5)*(tf - ti);
+    return Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + tf/T))
+         - Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + ti/T));
   }
   
   

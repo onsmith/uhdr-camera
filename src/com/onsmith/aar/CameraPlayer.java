@@ -17,7 +17,7 @@ import javax.swing.WindowConstants;
 
 public class CameraPlayer extends TimerTask implements DataSink {
   private int x, y, dt, d;
-  private int tNow, w, h, fps, clock;
+  private int tNow, w, h, msPerFrame, ticksPerFrame;
   private int[][] tNext;
   
   private DataInputStream reader;
@@ -28,6 +28,8 @@ public class CameraPlayer extends TimerTask implements DataSink {
   private Timer timer;
   
   private IntensityTransform intensityTransform;
+  
+  private static int Q = Integer.MAX_VALUE/2;
   
   
   /**
@@ -40,8 +42,8 @@ public class CameraPlayer extends TimerTask implements DataSink {
   public CameraPlayer(int w, int h, int clock, int fps, double iMin, double iMax) {
     this.w = w;
     this.h = h;
-    this.clock = clock;
-    this.fps = fps;
+    this.ticksPerFrame = clock/fps;
+    this.msPerFrame = 1000/fps;
     tNext = new int[w][h];
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
   }
@@ -49,8 +51,8 @@ public class CameraPlayer extends TimerTask implements DataSink {
   public CameraPlayer(int w, int h, int clock, int fps) {
     this.w = w;
     this.h = h;
-    this.clock = clock;
-    this.fps = fps;
+    this.ticksPerFrame = clock/fps;
+    this.msPerFrame = 1000/fps;
     tNext = new int[w][h];
     intensityTransform = new AutoLinearIntensityTransform(clock);
   }
@@ -72,12 +74,13 @@ public class CameraPlayer extends TimerTask implements DataSink {
     frame.repaint();
     
     // Advance current time
-    tNow += clock/fps;
+    tNow += ticksPerFrame;
     
     // Prepare next frame
+    //   Keep setting pixels to the image until (tNow <= tNext[x][y])
+    //   Check for possible overflow
     int intensity, gray;
-
-    while (tNext[x][y] < tNow) {
+    while (tNext[x][y] > Q && tNow < -Q || tNext[x][y] < tNow && (tNext[x][y] > -Q || tNow < Q)) {
       intensity = intensityTransform.toInt(dt, d);
       gray = getIntFromColor(intensity, intensity, intensity);
       image.setRGB(2*x,   2*y,   gray);
@@ -135,7 +138,7 @@ public class CameraPlayer extends TimerTask implements DataSink {
     
     // Begin running the timer
     timer = new Timer(true);
-    timer.scheduleAtFixedRate(this, new Date(), 1000/fps);
+    timer.scheduleAtFixedRate(this, new Date(), msPerFrame);
   }
   
   
