@@ -1,4 +1,4 @@
-package com.onsmith.aar;
+package com.onsmith.unc.uhdr;
 
 public interface DataProcessor {
   void startThread();

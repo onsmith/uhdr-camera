@@ -1,4 +1,4 @@
-package com.onsmith.aar;
+package com.onsmith.unc.uhdr;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,25 +9,24 @@ import java.util.PriorityQueue;
 public class CameraEmulator implements Runnable, DataSource {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
-  private static final double T      = 0.2;              // Wave period
+  private static final double T      = 1.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   private static final int    iD     = 4;                // Initial value of d
   
   
   // x, y, wavelength
   private static final int waves[][] = {
-    {  0,   0,  5},
-    { 50,  50,  5},
-    { 60,  25,  5},
+    {  0,   0,  10},
+    //{ 50,  50,  5},
+    { 60,  25,  50},
   };
   
   
   private int w;     // Width of camera, in pixels
   private int h;     // Height of camera, in pixels
   private int clock; // Camera clock speed, in hertz
-
-  private Integer dt[][];  // Amount of time that it will take for each pixel to fire, in clock ticks
-  private Integer D[][];   // D matrix
+  
+  private Integer D[][]; // D matrix
 
   private PriorityQueue<PixelFireEvent> queue; // Heap to keep track of which pixel will fire next
   
@@ -45,7 +44,6 @@ public class CameraEmulator implements Runnable, DataSource {
     this.clock = clock;
     
     D     = new Integer[w][h];
-    dt    = new Integer[w][h];
     queue = new PriorityQueue<PixelFireEvent>();
   }
   
@@ -60,7 +58,7 @@ public class CameraEmulator implements Runnable, DataSource {
       waveSum += Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(waves[i][0]-x, 2) + Math.pow(waves[i][1]-y, 2))/waves[i][2] + tf/T))
                - Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(waves[i][0]-x, 2) + Math.pow(waves[i][1]-y, 2))/waves[i][2] + ti/T));
     }
-    return (r-l)*T/(4.0*Math.PI*waves.length)*waveSum  + (l+r)*(tf-ti)/2 - Math.pow(2, D[x][y]);
+    return (r-l)*T/(4.0*Math.PI*waves.length)*waveSum  + (l+r)*(tf-ti)/2 - (0x1 << D[x][y]);
   }
   
   
@@ -68,16 +66,8 @@ public class CameraEmulator implements Runnable, DataSource {
    * Hazards an initial guess for the root of the above function
    */
   private double guess(int x, int y, double ti) {
-    return Math.pow(2, D[x][y] + 1)/(l + r) + ti;
-  }
-  
-  
-  /**
-   * Helper function that calculates the definite integral of a single wave
-   */
-  private double wave(int x, int y, double ti, double tf, int a, int b, double l, double r, int lambda, double T) {
-    return Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + tf/T))
-         - Math.sin(2.0*Math.PI*(-Math.sqrt(Math.pow(a-x, 2) + Math.pow(b-y, 2))/lambda + ti/T));
+    //return Math.pow(2, D[x][y] + 1)/(l + r) + ti;
+    return (0x2 << D[x][y])/(l + r) + ti;
   }
   
   
@@ -125,30 +115,30 @@ public class CameraEmulator implements Runnable, DataSource {
       for (int i=0; i<w; i++) {
         for (int j=0; j<h; j++) {
           t = findRoot(i, j, 0);
-          dt[i][j] = (int) (t*clock);
-          queue.add(new PixelFireEvent(i, j, t, D[i][j]));
+          queue.add(new PixelFireEvent(i, j, t, D[i][j], (int) Math.ceil(t*clock)));
         }
       }
     }
     
     // Main function loop
     {
-      double t;
-      int x, y, d;
       PixelFireEvent pfe;
+      double t;
+      int x, y, d, dt;
       while (true) {
-        // Find pixel to fire
+        // Get next pixel to fire
         pfe = queue.remove();
+        t = pfe.t();
         x = pfe.x();
         y = pfe.y();
-        t = pfe.t();
         d = pfe.d();
+        dt = pfe.dt();
         
         // Fire pixel
         try {
           writer.writeInt(x);
           writer.writeInt(y);
-          writer.writeInt(dt[x][y]);
+          writer.writeInt(dt);
           writer.writeInt(d);
         } catch (IOException e) {
           System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
@@ -156,17 +146,14 @@ public class CameraEmulator implements Runnable, DataSource {
           return;
         }
         
-        // Adjust D
-        //if (D[x][y] > 1 && dt[x][y] > clock/25) // nudge D if dt is slower than 25 fps
-        //  D[x][y]--;
-        //else if (dt[x][y] < clock/35) // nudge D if dt is faster than 35 fps
-        //  D[x][y]++;
-        
-        // Prepare next pixel to fire
+        // Reset pixel to fire again
         pfe.t(findRoot(x, y, t));
         pfe.d(D[x][y]);
+        pfe.dt((int) Math.ceil((pfe.t() - t)*clock));
         queue.add(pfe);
-        dt[x][y] = (int) Math.ceil((pfe.t() - t)*clock);
+        
+        // Adjust D
+        //D[x][y] = Encoder.setNextD(dt, d, pfe.dt(), pfe.d());
       }
     }
   }

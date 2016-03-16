@@ -1,12 +1,12 @@
-package com.onsmith.aar;
+package com.onsmith.unc.uhdr;
 
 public class PixelFireEvent implements Comparable<PixelFireEvent> {
   private double  t;
-  private int     x, y, d;
+  private int     x, y, d, dt;
   
   
-  public PixelFireEvent(int x, int y, double t, int d) {
-    x(x); y(y); t(t); d(d);
+  public PixelFireEvent(int x, int y, double t, int d, int dt) {
+    x(x); y(y); t(t); d(d); dt(dt);
   }
   
   
@@ -39,6 +39,14 @@ public class PixelFireEvent implements Comparable<PixelFireEvent> {
   }
   void d(int d) {
     this.d = d;
+  }
+  
+  
+  int dt() {
+    return dt;
+  }
+  void dt(int dt) {
+    this.dt = dt;
   }
   
   

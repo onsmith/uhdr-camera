@@ -1,4 +1,4 @@
-package com.onsmith.aar;
+package com.onsmith.unc.uhdr;
 
 public class LinearIntensityTransform implements IntensityTransform {
   // Parameters for keeping track of observed intensity values
@@ -19,7 +19,8 @@ public class LinearIntensityTransform implements IntensityTransform {
   //   while any intensity greater or equal to iMax is mapped to 1; intensities
   //   in between are mapped linearly.
   public double toDouble(int dt, int d) {
-    double iRaw = Math.pow(2, d)/((double) dt/clock);
+    //double iRaw = Math.pow(2, d)/((double) dt/clock);
+    double iRaw = (0x1 << d)/((double) dt/clock);
     return Math.min(1, Math.max(0, (iRaw - iMin)/iRange));
   }
   
