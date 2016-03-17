@@ -25,10 +25,12 @@ import javax.swing.event.ChangeListener;
 
 
 public class CameraPlayer implements Runnable, DataSink, ChangeListener {
-  private static final int    MIN_FPS = 1;                     // Minimum allowed FPS
-  private static final int    MAX_FPS = 120;                   // Maximum allowed FPS
+  private static final int    MIN_FPS = 1;   // Minimum allowed FPS
+  private static final int    MAX_FPS = 120; // Maximum allowed FPS
   
-  private static final int SCALE_FACTOR = 4; // Scale factor for the displayed video
+  private static final int SCALE_FACTOR = 8; // Scale factor for the displayed video
+  
+  private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   
   private int fps;       // Current fps value
   private int fpsUpdate; // When the UI updates the fps, this property is changed
@@ -41,9 +43,11 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   
   private DataInputStream reader; // Input stream object
 
-  private JFrame frame;       // JFrame to house the player
-  private JLabel iconLabel;   // Label to house the image
-  private JSlider fpsControl; // Slider that controls the player fps
+  private JFrame frame;        // JFrame to house the player
+  private JLabel iconLabel;    // Label to house the image
+  private JSlider fpsControl,  // Slider that controls the player fps
+                  iMinControl, // Slider that controls the largest intensity that should map to 0
+                  iMaxControl; // Slider that controls the smallest intensity that should map to 255
   
   private final BufferedImage image; // BufferedImage to display the current frame on the screen
   
@@ -62,6 +66,8 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     this.h     = h;
     this.clock = clock;
     this.fps   = fps;
+    this.iMin  = iMin;
+    this.iMax  = iMax;
     
     tNext = new long[w][h];
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
@@ -175,6 +181,28 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     fpsControl.setAlignmentX(Component.CENTER_ALIGNMENT);
     fpsControl.addChangeListener(this);
     
+    // Create and set JLabel to hold the min intensity slider
+    iMinControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMin);
+    iMinControl.setMajorTickSpacing((int) (iMax - iMin)/10);
+    iMinControl.setMinorTickSpacing((int) (iMax - iMin)/50);
+    iMinControl.setPaintTicks(true);
+    iMinControl.setPaintLabels(true);
+    iMinControl.setBorder(new EmptyBorder(0, 20, 20, 20)); // top, left, bottom, right
+    iMinControl.setFont(new Font("Serif", Font.ITALIC, 30));
+    iMinControl.setAlignmentX(Component.CENTER_ALIGNMENT);
+    iMinControl.addChangeListener(this);
+    
+    // Create and set JLabel to hold the max intensity slider
+    iMaxControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMax);
+    iMaxControl.setMajorTickSpacing((int) (iMax - iMin)/10);
+    iMaxControl.setMinorTickSpacing((int) (iMax - iMin)/50);
+    iMaxControl.setPaintTicks(true);
+    iMaxControl.setPaintLabels(true);
+    iMaxControl.setBorder(new EmptyBorder(0, 20, 20, 20)); // top, left, bottom, right
+    iMaxControl.setFont(new Font("Serif", Font.ITALIC, 30));
+    iMaxControl.setAlignmentX(Component.CENTER_ALIGNMENT);
+    iMaxControl.addChangeListener(this);
+    
     // Create, configure, and show JFrame
     frame = new JFrame();
     frame.setMinimumSize(new Dimension(800, 0)); // w, h
@@ -182,6 +210,8 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
     frame.getContentPane().add(iconLabel);
     frame.getContentPane().add(fpsControl);
+    frame.getContentPane().add(iMinControl);
+    frame.getContentPane().add(iMaxControl);
     frame.pack();
     frame.setLocationRelativeTo(null); // Passing a null component causes the window to be placed in the center of the screen
     frame.setVisible(true);
@@ -221,5 +251,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    */
   public void stateChanged(ChangeEvent e) {
     fpsUpdate = fpsControl.getValue();
+    intensityTransform = new LinearIntensityTransform(clock, iMinControl.getValue(), iMaxControl.getValue());
   }
 }
