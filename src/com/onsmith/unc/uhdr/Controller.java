@@ -1,5 +1,7 @@
 package com.onsmith.unc.uhdr;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.io.PipedInputStream;
@@ -17,22 +19,42 @@ public class Controller {
   
   public static void main(String [] args) throws IOException {
     // Create pipe for transferring data across threads
-    PipedOutputStream pipeOut = new PipedOutputStream();
-    PipedInputStream  pipeIn  = new PipedInputStream(pipeOut);
+    PipedOutputStream pipeOut1 = new PipedOutputStream();
+    PipedInputStream  pipeIn1  = new PipedInputStream(pipeOut1);
     
-    // Pipe data from emulator
-    DataSource camera = new CameraEmulator(w, h, clock, 5);
-    camera.pipeTo(pipeOut);
-    camera.start();
+    // Create pipe for transferring data across threads
+    PipedOutputStream pipeOut2 = new PipedOutputStream();
+    PipedInputStream  pipeIn2  = new PipedInputStream(pipeOut2);
+    
+    // Create pipe for transferring data across threads
+    PipedOutputStream pipeOut3 = new PipedOutputStream();
+    PipedInputStream  pipeIn3  = new PipedInputStream(pipeOut3);
     
     // Pipe data from disk
     //DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
     //file.pipeTo(pipeOut);
     //file.start();
     
+    // Pipe data from emulator
+    DataSource camera = new CameraEmulator(w, h, clock, 5);
+    camera.pipeTo(pipeOut1);
+    camera.start();
+    
+    // Pipe data through encoder
+    DataTransform encoder = new Encoder(w, h, clock);
+    encoder.pipeFrom(pipeIn1);
+    encoder.pipeTo(pipeOut2); // new FileOutputStream("data/temp.data")
+    encoder.start();
+    
+    // Pipe data through decoder
+    DataTransform decoder = new Decoder(w, h, clock, 5);
+    decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data"))
+    decoder.pipeTo(pipeOut3);
+    decoder.start();
+    
     // Pipe data to video player
     DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
-    player.pipeFrom(pipeIn);
+    player.pipeFrom(pipeIn3);
     player.start();
   }
 }

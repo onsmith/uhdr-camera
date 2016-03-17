@@ -9,15 +9,15 @@ import java.util.PriorityQueue;
 public class CameraEmulator implements Runnable, DataSource {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
-  private static final double T      = 2.1;              // Wave period
+  private static final double T      = 1.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   
   // x, y, wavelength
   private static final int waves[][] = {
-    {  0,   0,  10},
-    //{ 50,  50,  5},
-    { 60,  25,  50},
+    //{  0,   0,  10},
+    { 50,  50,  5},
+    //{ 60,  25,  50},
   };
   
   
@@ -178,7 +178,7 @@ public class CameraEmulator implements Runnable, DataSource {
    * Internal class representing a single pixel firing at a specific time. Used
    *   by the internal PriorityQueue to determine which pixel to fire next.
    */
-  private class PixelFire implements Comparable<PixelFire> {
+  private static class PixelFire implements Comparable<PixelFire> {
     public       double t;
     public       int    d, dt;
     public final int    x, y;
