@@ -59,12 +59,12 @@ public class CameraFileReader implements Runnable, DataSource {
     }
     catch (IOException e) {
       System.out.println("CameraFileReader could not write to output stream. Thread terminated.");
-      stopThread();
+      stop();
       return;
     }
     catch (NoSuchElementException e) {
       System.out.println("CameraFileReader could not read from given file. Thread terminated.");
-      stopThread();
+      stop();
       return;
     }
   }
@@ -73,8 +73,8 @@ public class CameraFileReader implements Runnable, DataSource {
   /**
    * Method to start a new thread to run the camera emulator
    */
-  public void startThread() {
-    stopThread();
+  public void start() {
+    stop();
     thread = new Thread(this);
     thread.start();
   }
@@ -83,7 +83,7 @@ public class CameraFileReader implements Runnable, DataSource {
   /**
    * Method to stop the current thread
    */
-  public void stopThread() {
+  public void stop() {
     if (thread != null) thread.interrupt();
   }
 }

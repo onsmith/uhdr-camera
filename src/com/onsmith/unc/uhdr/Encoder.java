@@ -2,7 +2,7 @@ package com.onsmith.unc.uhdr;
 
 public class Encoder {
   private static final int    clock = 1000000000;
-  private static final double tol   = 1;
+  private static final double tol   = 6;
   
   
   public static int setNextD(int t1, int d1, int t2, int d2) {
@@ -14,6 +14,8 @@ public class Encoder {
     
     if (d < 0)  d = 0;
     if (d > 15) d = 15;
+    
+    System.out.println(d);
     return d;
   }
 }

@@ -1,6 +1,5 @@
 package com.onsmith.unc.uhdr;
 
 public interface DataProcessor {
-  void startThread();
-  void stopThread();
+  void start();
 }

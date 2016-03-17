@@ -9,9 +9,8 @@ import java.util.PriorityQueue;
 public class CameraEmulator implements Runnable, DataSource {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
-  private static final double T      = 1.1;              // Wave period
+  private static final double T      = 2.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
-  private static final int    iD     = 4;                // Initial value of d
   
   
   // x, y, wavelength
@@ -22,13 +21,14 @@ public class CameraEmulator implements Runnable, DataSource {
   };
   
   
-  private int w;     // Width of camera, in pixels
-  private int h;     // Height of camera, in pixels
-  private int clock; // Camera clock speed, in hertz
+  private final int w;     // Width of camera, in pixels
+  private final int h;     // Height of camera, in pixels
+  private final int clock; // Camera clock speed, in hertz
+  private final int iD;    // Initial value of d
   
-  private Integer D[][]; // D matrix
+  private final Integer D[][]; // D matrix
 
-  private PriorityQueue<PixelFireEvent> queue; // Heap to keep track of which pixel will fire next
+  private final PriorityQueue<PixelFire> queue; // Heap to keep track of which pixel will fire next
   
   private DataOutputStream writer; // DataOutputStream object to handle output
   
@@ -39,12 +39,16 @@ public class CameraEmulator implements Runnable, DataSource {
    * Constructor
    */
   public CameraEmulator(int w, int h, int clock) {
+    this(w, h, clock, 5);
+  }
+    public CameraEmulator(int w, int h, int clock, int iD) {
     this.w     = w;
     this.h     = h;
     this.clock = clock;
+    this.iD    = iD;
     
     D     = new Integer[w][h];
-    queue = new PriorityQueue<PixelFireEvent>();
+    queue = new PriorityQueue<PixelFire>();
   }
   
   
@@ -110,51 +114,44 @@ public class CameraEmulator implements Runnable, DataSource {
         D[i][j] = iD;
     
     // Load every pixel into the queue
-    {
-      double t;
-      for (int i=0; i<w; i++) {
-        for (int j=0; j<h; j++) {
-          t = findRoot(i, j, 0);
-          queue.add(new PixelFireEvent(i, j, t, D[i][j], (int) Math.ceil(t*clock)));
-        }
+    queue.clear();
+    for (int i=0; i<w; i++) {
+      for (int j=0; j<h; j++) {
+        final double t = findRoot(i, j, 0);
+        queue.add(new PixelFire(i, j, t, D[i][j], (int) Math.ceil(t*clock)));
       }
     }
     
     // Main function loop
-    {
-      PixelFireEvent pfe;
-      double t;
-      int x, y, d, dt;
-      while (true) {
-        // Get next pixel to fire
-        pfe = queue.remove();
-        t = pfe.t();
-        x = pfe.x();
-        y = pfe.y();
-        d = pfe.d();
-        dt = pfe.dt();
-        
-        // Fire pixel
-        try {
-          writer.writeInt(x);
-          writer.writeInt(y);
-          writer.writeInt(dt);
-          writer.writeInt(d);
-        } catch (IOException e) {
-          System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
-          stopThread();
-          return;
-        }
-        
-        // Reset pixel to fire again
-        pfe.t(findRoot(x, y, t));
-        pfe.d(D[x][y]);
-        pfe.dt((int) Math.ceil((pfe.t() - t)*clock));
-        queue.add(pfe);
-        
-        // Adjust D
-        //D[x][y] = Encoder.setNextD(dt, d, pfe.dt(), pfe.d());
+    while (true) {
+      // Get next pixel to fire
+      final PixelFire pfe = queue.remove();
+      final double    t   = pfe.t;
+      final int       x   = pfe.x,
+                      y   = pfe.y,
+                      d   = pfe.d,
+                      dt  = pfe.dt;
+      
+      // Fire pixel
+      try {
+        writer.writeInt(x);
+        writer.writeInt(y);
+        writer.writeInt(dt);
+        writer.writeInt(d);
+      } catch (IOException e) {
+        System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
+        stop();
+        return;
       }
+      
+      // Reset pixel to fire again
+      pfe.t  = findRoot(x, y, t);
+      pfe.d  = D[x][y];
+      pfe.dt = (int) Math.ceil((pfe.t - t)*clock);
+      queue.add(pfe);
+      
+      // Adjust D
+      //D[x][y] = Encoder.setNextD(dt, d, pfe.dt(), pfe.d());
     }
   }
   
@@ -162,8 +159,8 @@ public class CameraEmulator implements Runnable, DataSource {
   /**
    * Method to start a new thread to run the camera emulator
    */
-  public void startThread() {
-    stopThread();
+  public void start() {
+    stop();
     thread = new Thread(this);
     thread.start();
   }
@@ -172,7 +169,30 @@ public class CameraEmulator implements Runnable, DataSource {
   /**
    * Method to stop the current thread
    */
-  public void stopThread() {
+  public void stop() {
     if (thread != null) thread.interrupt();
+  }
+  
+  
+  /**
+   * Internal class representing a single pixel firing at a specific time. Used
+   *   by the internal PriorityQueue to determine which pixel to fire next.
+   */
+  private class PixelFire implements Comparable<PixelFire> {
+    public       double t;
+    public       int    d, dt;
+    public final int    x, y;
+    
+    public PixelFire(int x, int y, double t, int d, int dt) {
+      this.x  = x;
+      this.y  = y;
+      this.t  = t;
+      this.d  = d;
+      this.dt = dt;
+    }
+    
+    public int compareTo(PixelFire o) {
+      return Double.compare(t, o.t);
+    }
   }
 }
