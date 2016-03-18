@@ -106,7 +106,7 @@ public class Decoder implements Runnable, DataTransform {
   
   /**
    * Internal class representing a pixel firing at a specific time. Used by the
-   *   internal PriorityQueue to determine which pixel will come next.
+   *   internal PriorityQueue to determine which pixel's value will come next.
    */
   private static class FireEvent implements Comparable<FireEvent> {
     public final int x, y; // Pixel's spatial location

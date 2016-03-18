@@ -109,7 +109,7 @@ public class Encoder implements Runnable, DataTransform {
   
   
   /**
-   * Method to write a specified PixelFire to the wire
+   * Method to write a specified pixel to the wire
    */
   private void writePixel(int dt) {
     try {
@@ -136,7 +136,7 @@ public class Encoder implements Runnable, DataTransform {
   
   /**
    * Internal class representing a pixel firing at a specific time. Used by the
-   *   internal PriorityQueue to determine which pixel to send next.
+   *   internal PriorityQueue to determine which pixel's value to send next.
    */
   private static class FireEvent implements Comparable<FireEvent> {
     public final int x, y; // Pixel's spatial location
