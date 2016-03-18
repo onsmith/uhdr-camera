@@ -12,12 +12,9 @@ import java.util.Queue;
 
 
 public class Encoder implements Runnable, DataTransform {
-  private final int clock; // Incoming stream clock speed
   private final int w, h;  // Video width and height
   
-  private final List<FireEvent>[][] buffer; // Structure to buffer pixels
-  
-  private final long[][] t;
+  private final List<Intensity>[][] buffer; // Structure to buffer pixels
   
   private DataInputStream  reader; // DataInputStream object for reading input
   private DataOutputStream writer; // DataOutputStream object for writing output
@@ -29,19 +26,15 @@ public class Encoder implements Runnable, DataTransform {
    *  Constructor
    */
   @SuppressWarnings("unchecked")
-  public Encoder(int w, int h, int clock) {
-    this.w     = w;
-    this.h     = h;
-    this.clock = clock;
-    
-    // Initialize t structure
-    t = new long[w][h];
+  public Encoder(int w, int h) {
+    this.w = w;
+    this.h = h;
     
     // Initialize buffer structure
-    buffer = (List<FireEvent>[][]) new List[w][h];
+    buffer = (List<Intensity>[][]) new List[w][h];
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        buffer[i][j] = new ArrayList<FireEvent>(10);
+        buffer[i][j] = new ArrayList<Intensity>(10);
   }
   
   
@@ -72,29 +65,26 @@ public class Encoder implements Runnable, DataTransform {
     // Set up a PriorityQueue to schedule the FireEvents
     Queue<FireEvent> queue = new PriorityQueue<FireEvent>();
     
-    // Write the first FireEvent for every pixel to the wire
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        FireEvent pfe = nextIncoming(i, j);
-        queue.add(pfe);
-        writePixel(pfe);
-      }
-    }
+    // Fill the scheduler
+    for (int i=0; i<w; i++)
+      for (int j=0; j<h; j++)
+        queue.add(new FireEvent(i, j, 0));
     
     // Use the scheduler to write pixels to the wire
     while (true) {
-      FireEvent pfe = queue.remove();   // Remove from queue
-      pfe = nextIncoming(pfe.x, pfe.y); // Read next value from wire
-      writePixel(pfe);                  // Write to wire
-      queue.add(pfe);                   // Add back to queue
+      FireEvent pfe = queue.remove();            // Remove pixel from queue
+      Intensity pi = nextIncoming(pfe.x, pfe.y); // Read corresponding next intensity value from buffer
+      writePixel(pi.dt);                         // Write pixel to wire
+      pfe.t += pi.dt;                            // Update next firing time
+      queue.add(pfe);                            // Add back to queue
     }
   }
   
   
   /**
-   * Method to pop the next PixelFire for a given pixel from the buffer
+   * Method to pop the next Intensity for a given pixel from the buffer
    */
-  private FireEvent nextIncoming(int x, int y) {
+  private Intensity nextIncoming(int x, int y) {
     while (buffer[x][y].isEmpty()) readNextPixel();
     return buffer[x][y].remove(0);
   }
@@ -109,8 +99,7 @@ public class Encoder implements Runnable, DataTransform {
           y  = reader.readInt(),
           dt = reader.readInt(),
           d  = reader.readInt();
-      t[x][y] += dt;
-      buffer[x][y].add(new FireEvent(x, y, dt, d, t[x][y]));
+      buffer[x][y].add(new Intensity(dt, d));
     }
     catch (IOException e) {
       System.out.println("Encoder could not read from input stream. Thread terminated.");
@@ -122,12 +111,9 @@ public class Encoder implements Runnable, DataTransform {
   /**
    * Method to write a specified PixelFire to the wire
    */
-  private void writePixel(FireEvent pfe) {
+  private void writePixel(int dt) {
     try {
-      //writer.writeInt(pfe.x);
-      //writer.writeInt(pfe.y);
-      writer.writeInt(pfe.dt);
-      //writer.writeInt(pfe.d);
+      writer.writeInt(dt);
     } catch (IOException e) {
       System.out.println("Encoder could not write to output stream. Thread terminated.");
       thread.interrupt();
@@ -136,29 +122,43 @@ public class Encoder implements Runnable, DataTransform {
   
   
   /**
-   * Internal class representing a single pixel firing at a specific time. Used
-   *   by the internal PriorityQueue to determine which pixel to send next.
+   * Internal class to store a pixel intensity value
+   */
+  private static class Intensity {
+    public final int dt, d;
+    
+    public Intensity(int dt, int d) {
+      this.dt = dt;
+      this.d  = d;
+    }
+  }
+  
+  
+  /**
+   * Internal class representing a pixel firing at a specific time. Used by the
+   *   internal PriorityQueue to determine which pixel to send next.
    */
   private static class FireEvent implements Comparable<FireEvent> {
-    public final int  x, y;  // Pixel's spatial location
-    public       int  dt, d; // Pixel's intensity
-    public       long t;     // Next time this pixel should fire
+    public final int x, y; // Pixel's spatial location
+    public       int t;    // Next time this pixel should fire
     
-    public static long Q = Long.MAX_VALUE/2;
+    public static int Q = Integer.MAX_VALUE/2;
     
-    public FireEvent(int x, int y, int dt, int d, long t) {
-      this.x  = x;
-      this.y  = y;
-      this.d  = d;
-      this.dt = dt;
-      this.t  = t;
+    public FireEvent(int x, int y, int t) {
+      this.x = x;
+      this.y = y;
+      this.t = t;
     }
     
     public int compareTo(FireEvent o) {
-      if (t > Q && o.t < -Q || o.t > Q && t < -Q)
-        return Long.compare(o.t, t);
+      if (t == o.t) {
+        if (x == o.x) return Integer.compare(y, o.y);
+        else          return Integer.compare(x, o.x);
+      }
+      else if (t > Q && o.t < -Q || o.t > Q && t < -Q)
+        return Integer.compare(o.t, t);
       else
-        return Long.compare(t, o.t);
+        return Integer.compare(t, o.t);
     }
   }
   

@@ -204,7 +204,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     iMaxControl.addChangeListener(this);
     
     // Create, configure, and show JFrame
-    frame = new JFrame();
+    frame = new JFrame("UHDR Player");
     frame.setMinimumSize(new Dimension(800, 0)); // w, h
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));

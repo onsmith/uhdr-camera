@@ -41,13 +41,13 @@ public class Controller {
     camera.start();
     
     // Pipe data through encoder
-    DataTransform encoder = new Encoder(w, h, clock);
+    DataTransform encoder = new Encoder(w, h);
     encoder.pipeFrom(pipeIn1);
     encoder.pipeTo(pipeOut2); // new FileOutputStream("data/temp.data")
     encoder.start();
     
     // Pipe data through decoder
-    DataTransform decoder = new Decoder(w, h, clock, 5);
+    DataTransform decoder = new Decoder(w, h, 5);
     decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data"))
     decoder.pipeTo(pipeOut3);
     decoder.start();

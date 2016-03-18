@@ -10,7 +10,6 @@ import java.util.Queue;
 
 
 public class Decoder implements Runnable, DataTransform {
-  private final int clock; // Incoming stream clock speed
   private final int w, h;  // Video width and height
   
   private DataInputStream  reader; // DataInputStream object for reading input
@@ -24,11 +23,10 @@ public class Decoder implements Runnable, DataTransform {
   /**
    *  Constructor
    */
-  public Decoder(int w, int h, int clock, int iD) {
-    this.w     = w;
-    this.h     = h;
-    this.clock = clock;
-    this.iD    = iD;
+  public Decoder(int w, int h, int iD) {
+    this.w  = w;
+    this.h  = h;
+    this.iD = iD;
   }
   
   
@@ -59,23 +57,18 @@ public class Decoder implements Runnable, DataTransform {
     // Set up a PriorityQueue to schedule pixel fires
     Queue<FireEvent> queue = new PriorityQueue<FireEvent>();
     
-    // Read every pixel once, in order
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        int dt = readNextPixel();
-        FireEvent pfe = new FireEvent(i, j, dt, iD, dt); // x, y, dt, d, t
-        writePixel(pfe);
-        queue.add(pfe);
-      }
-    }
+    // Fill the scheduler
+    for (int i=0; i<w; i++)
+      for (int j=0; j<h; j++)
+        queue.add(new FireEvent(i, j, 0));
     
     // Use the scheduler to read pixels
     while (true) {
-      FireEvent pfe = queue.remove(); // Remove from queue
-      pfe.dt = readNextPixel();       // Read next value from wire
-      pfe.t += pfe.dt;                // Update t
-      writePixel(pfe);                // Write to wire
-      queue.add(pfe);                 // Add back to queue
+      FireEvent pfe = queue.remove();   // Remove from queue
+      int dt = readNextPixel();         // Read next value from wire
+      pfe.t += dt;                      // Update t
+      writePixel(pfe.x, pfe.y, dt, iD); // Write to wire
+      queue.add(pfe);                   // Add back to queue
     }
   }
   
@@ -98,12 +91,12 @@ public class Decoder implements Runnable, DataTransform {
   /**
    * Method to write a specified PixelFire to the wire
    */
-  private void writePixel(FireEvent pfe) {
+  private void writePixel(int x, int y, int dt, int d) {
     try {
-      writer.writeInt(pfe.x);
-      writer.writeInt(pfe.y);
-      writer.writeInt(pfe.dt);
-      writer.writeInt(pfe.d);
+      writer.writeInt(x);
+      writer.writeInt(y);
+      writer.writeInt(dt);
+      writer.writeInt(d);
     } catch (IOException e) {
       System.out.println("Decoder could not write to output stream. Thread terminated.");
       thread.interrupt();
@@ -112,29 +105,30 @@ public class Decoder implements Runnable, DataTransform {
   
   
   /**
-   * Internal class representing a single pixel firing at a specific time. Used
-   *   by the internal PriorityQueue to determine which pixel to send next.
+   * Internal class representing a pixel firing at a specific time. Used by the
+   *   internal PriorityQueue to determine which pixel will come next.
    */
   private static class FireEvent implements Comparable<FireEvent> {
-    public final int  x, y;  // Pixel's spatial location
-    public       int  dt, d; // Pixel's intensity
-    public       long t;     // Next time this pixel should fire
+    public final int x, y; // Pixel's spatial location
+    public       int t;    // Next time this pixel should fire
     
-    public static long Q = Long.MAX_VALUE/2;
+    public static int Q = Integer.MAX_VALUE/2;
     
-    public FireEvent(int x, int y, int dt, int d, long t) {
-      this.x  = x;
-      this.y  = y;
-      this.d  = d;
-      this.dt = dt;
-      this.t  = t;
+    public FireEvent(int x, int y, int t) {
+      this.x = x;
+      this.y = y;
+      this.t = t;
     }
     
     public int compareTo(FireEvent o) {
-      if (t > Q && o.t < -Q || o.t > Q && t < -Q)
-        return Long.compare(o.t, t);
+      if (t == o.t) {
+        if (x == o.x) return Integer.compare(y, o.y);
+        else          return Integer.compare(x, o.x);
+      }
+      else if (t > Q && o.t < -Q || o.t > Q && t < -Q)
+        return Integer.compare(o.t, t);
       else
-        return Long.compare(t, o.t);
+        return Integer.compare(t, o.t);
     }
   }
 }
