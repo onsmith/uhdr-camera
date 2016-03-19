@@ -3,55 +3,25 @@ package com.onsmith.unc.uhdr;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.DataOutputStream;
-import java.util.PriorityQueue;
-import java.util.Queue;
 
 
-public class CameraEmulator implements Runnable, DataSource {
+abstract public class CameraEmulator implements Runnable, DataSource {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
-  private static final double T      = 3.1;              // Wave period
+  private static final double T      = 1.1;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   
   // x, y, wavelength
   private static final int waves[][] = {
-    //{  0,   0,  10},
+    {  0,   0,  10},
     { 50,  50,  10},
     //{ 60,  25,  50}
   };
   
-  
-  private final int xOffset, // Window x offset, in pixels
-                    yOffset; // Window y offset, in pixels
-  
-  private final int w,     // Width of camera, in pixels
-                    h,     // Height of camera, in pixels
-                    clock, // Camera clock speed, in hertz
-                    iD;    // Initial value of d
-  
   private DataOutputStream writer; // DataOutputStream object to handle output
   
   private Thread thread; // Every CameraEmulator instance gets its own thread
-  
-  
-  /**
-   * Constructor
-   */
-  public CameraEmulator(int w, int h, int clock) {
-    this(w, h, clock, 5); // Default iD
-  }
-  public CameraEmulator(int w, int h, int clock, int iD) {
-    this(w, h, clock, iD, 0, 0); // Default xOffset, yOffset
-  }
-  public CameraEmulator(int w, int h, int clock, int iD, int xOffset, int yOffset) {
-    this.w       = w;
-    this.h       = h;
-    this.clock   = clock;
-    this.iD      = iD;
-    this.xOffset = xOffset;
-    this.yOffset = yOffset;
-  }
   
   
   /**
@@ -83,46 +53,18 @@ public class CameraEmulator implements Runnable, DataSource {
   /**
    * Method to run the emulator
    */
-  public void run() {
-    // Queue to keep track of which pixel to write next
-    Queue<PixelFire >queue = new PriorityQueue<PixelFire>();
-    
-    // Load every pixel into the queue
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        double t = findRoot(i+xOffset, j+yOffset, iD, 0);
-        queue.add(new PixelFire(i, j, (int) Math.ceil(t*clock), iD, t));
-      }
-    }
-    
-    // Main function loop
-    while (true) {
-      // Get next pixel to write
-      PixelFire pfe = queue.remove();
-      
-      // Write pixel
-      writePixel(pfe);
-      
-      // This is where D would be updated
-      
-      // Reset pixel to fire again
-      double t = findRoot(pfe.x+xOffset, pfe.y+yOffset, pfe.d, pfe.t);
-      pfe.dt = (int) Math.ceil((t - pfe.t)*clock);
-      pfe.t  = t;
-      queue.add(pfe);
-    }
-  }
+  abstract public void run();
   
   
   /**
    * Method to write a pixel to the wire
    */
-  private void writePixel(PixelFire pfe) {
+  protected void writePixel(int x, int y, int dt, int d) {
     try {
-      writer.writeInt(pfe.x);
-      writer.writeInt(pfe.y);
-      writer.writeInt(pfe.dt);
-      writer.writeInt(pfe.d);
+      writer.writeInt(x);
+      writer.writeInt(y);
+      writer.writeInt(dt);
+      writer.writeInt(d);
     } catch (IOException e) {
       System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
       this.stop();
@@ -157,7 +99,7 @@ public class CameraEmulator implements Runnable, DataSource {
    * Estimates the root of the intensity function. Since the function is
    *   monotonically increasing, this is a simple binary search implementation.
    */
-  private static double findRoot(int x, int y, int D, double ti) {
+  protected static double findRoot(int x, int y, int D, double ti) {
     double l = guess(D, ti) - T/4,
            r = l + T/2;
     
@@ -170,28 +112,5 @@ public class CameraEmulator implements Runnable, DataSource {
     }
     
     return (l+r)/2;
-  }
-  
-  
-  /**
-   * Internal class representing a single pixel firing at a specific time. Used
-   *   by the internal PriorityQueue to determine which pixel to fire next.
-   */
-  private static class PixelFire implements Comparable<PixelFire> {
-    public final int    x, y;  // Spatial location of the pixel
-    public       int    d, dt; // Intensity value of the pixel when it fires
-    public       double t;     // Time at which the pixel should fire
-    
-    public PixelFire(int x, int y, int dt, int d, double t) {
-      this.x  = x;
-      this.y  = y;
-      this.t  = t;
-      this.d  = d;
-      this.dt = dt;
-    }
-    
-    public int compareTo(PixelFire o) {
-      return Double.compare(t, o.t);
-    }
   }
 }

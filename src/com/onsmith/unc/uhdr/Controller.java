@@ -36,7 +36,7 @@ public class Controller {
     //file.start();
     
     // Pipe data from emulator
-    DataSource camera = new CameraEmulator(w, h, clock, 5);
+    DataSource camera = new UnorderedCameraEmulator(w, h, clock, 5);
     camera.pipeTo(pipeOut1);
     camera.start();
     
@@ -48,7 +48,7 @@ public class Controller {
     
     // Pipe data through decoder
     DataTransform decoder = new Decoder(w, h, 5);
-    decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data"))
+    decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data")
     decoder.pipeTo(pipeOut3);
     decoder.start();
     

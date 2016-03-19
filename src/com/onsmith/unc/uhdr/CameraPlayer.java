@@ -37,9 +37,10 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
 
   private final int w, h, clock; // Intrinsic camera properties
   
-  private       int      x, y, dt, d; // Stores the last pixel read
-  private       long     tNow;        // Stores the current time
-  private final long[][] tNext;       // Stores the next time each pixel should be updated
+  private int x, y, dt, d; // Stores the last pixel read
+  
+  private long     tNow;  // Current time
+  private long[][] tNext; // Next time that each pixel needs to be changed
   
   private DataInputStream reader; // Input stream object
 
@@ -102,27 +103,15 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     tNow += ticksPerFrame();
     
     // Prepare next frame
-    //   Keep setting pixels to the image until (tNow <= tNext[x][y])
+    //   Keep sending pixels to the image while (tNext[x][y] < tNow)
     //   Check for possible overflow
-    int intensity, gray;
-    while (tNext[x][y] > Q && tNow < -Q || tNext[x][y] < tNow && (tNext[x][y] > -Q || tNow < Q)) {
-      intensity = intensityTransform.toInt(dt, d);
-      gray = getIntFromColor(intensity, intensity, intensity);
-      image.setRGB(x, y, gray);
+    while (tNext[x][y] < tNow && (tNext[x][y] > -Q || tNow < Q) || tNext[x][y] > Q && tNow < -Q) {
+      image.setRGB(x, y, asGrayscale(intensityTransform.toInt(dt, d)));
       tNext[x][y] += dt;
-      
-      try {
-        x  = reader.readInt();
-        y  = reader.readInt();
-        dt = reader.readInt();
-        d  = reader.readInt();
-      }
-      catch (IOException e) {
-        System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
-        timer.cancel();
-        return;
-      }
+      readPixel();
     }
+    
+    // Update icon
   }
   
   
@@ -134,6 +123,18 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     startPlayerWindow();
     
     // Priming read
+    readPixel();
+    
+    // Begin running the timer
+    fpsUpdate = fps;
+    restartTimer();
+  }
+  
+  
+  /**
+   * Internal method to read in the next pixel
+   */
+  private void readPixel() {
     try {
       x  = reader.readInt();
       y  = reader.readInt();
@@ -142,12 +143,9 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     }
     catch (IOException e) {
       System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
+      timer.cancel();
       return;
     }
-    
-    // Begin running the timer
-    fpsUpdate = fps;
-    restartTimer();
   }
   
   
@@ -237,12 +235,20 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   /**
    * Static method to package three color bytes as a single integer
    */
-  public static int getIntFromColor(int r, int g, int b) {
+  private static int getIntFromColor(int r, int g, int b) {
     r = (r << 16) & 0x00FF0000; // Shift red 16-bits and mask out other stuff
     g = (g << 8)  & 0x0000FF00; // Shift Green 8-bits and mask out other stuff
     b =  b        & 0x000000FF; // Mask out anything not blue.
     
     return 0xFF000000 | r | g | b; // 0xFF000000 for 100% Alpha. Bitwise OR everything together.
+  }
+  
+  
+  /**
+   * Static method to transform an intensity into a greyscale value
+   */
+  private static int asGrayscale(int intensity) {
+    return getIntFromColor(intensity, intensity, intensity);
   }
   
   

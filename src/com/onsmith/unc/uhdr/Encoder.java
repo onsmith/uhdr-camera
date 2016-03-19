@@ -34,7 +34,7 @@ public class Encoder implements Runnable, DataTransform {
     buffer = (List<Intensity>[][]) new List[w][h];
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        buffer[i][j] = new ArrayList<Intensity>(10);
+        buffer[i][j] = new ArrayList<Intensity>(20);
   }
   
   
