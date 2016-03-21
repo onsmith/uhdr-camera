@@ -44,17 +44,17 @@ public class Controller {
     DataTransform encoder = new Encoder(w, h);
     encoder.pipeFrom(pipeIn1);
     encoder.pipeTo(pipeOut2); // new FileOutputStream("data/temp.data")
-    encoder.start();
+    encoder.start();          // new FileInputStream("data/temp.data")
     
     // Pipe data through decoder
     DataTransform decoder = new Decoder(w, h, 5);
     decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data")
-    decoder.pipeTo(pipeOut3);
+    decoder.pipeTo(pipeOut3);  // new FileOutputStream("data/temp.data")
     decoder.start();
     
     // Pipe data to video player
     DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
-    player.pipeFrom(pipeIn3);
+    player.pipeFrom(pipeIn3); // new FileInputStream("data/temp.data")
     player.start();
   }
 }

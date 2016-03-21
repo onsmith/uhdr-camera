@@ -10,8 +10,6 @@ import java.io.DataInputStream;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -28,14 +26,14 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   private static final int    MIN_FPS = 1;   // Minimum allowed FPS
   private static final int    MAX_FPS = 120; // Maximum allowed FPS
   
-  private static final int SCALE_FACTOR = 8; // Scale factor for the displayed video
+  private static final int SCALE_FACTOR = 4; // Scale factor for the displayed video
   
   private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   
   private int fps;       // Current fps value
   private int fpsUpdate; // When the UI updates the fps, this property is changed
 
-  private final int w, h, clock; // Intrinsic camera properties
+  private final int clock; // Clock speed
   
   private int x, y, dt, d; // Stores the last pixel read
   
@@ -50,7 +48,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
                   iMinControl, // Slider that controls the largest intensity that should map to 0
                   iMaxControl; // Slider that controls the smallest intensity that should map to 255
   
-  private final BufferedImage image; // BufferedImage to display the current frame on the screen
+  private final ScaledGrayscaleImage image; // ScaledGrayscaleImage to manage image scaling
   
   private Timer timer; // Timer to periodically call run()
   
@@ -63,8 +61,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    * Constructors
    */
   public CameraPlayer(int w, int h, int clock, int fps, double iMin, double iMax) {
-    this.w     = w;
-    this.h     = h;
     this.clock = clock;
     this.fps   = fps;
     this.iMin  = iMin;
@@ -72,7 +68,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     
     tNext = new long[w][h];
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
-    image = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+    image = new ScaledGrayscaleImage(w, h, SCALE_FACTOR);
   }
   
   
@@ -95,10 +91,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
       return;
     }
     
-    // Show prepared frame
-    iconLabel.setIcon(new ImageIcon(image.getScaledInstance(SCALE_FACTOR*h, SCALE_FACTOR*w, Image.SCALE_FAST)));
-    //frame.repaint();
-    
     // Advance current time
     tNow += ticksPerFrame();
     
@@ -106,10 +98,13 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     //   Keep sending pixels to the image while (tNext[x][y] < tNow)
     //   Check for possible overflow
     while (tNext[x][y] < tNow && (tNext[x][y] > -Q || tNow < Q) || tNext[x][y] > Q && tNow < -Q) {
-      image.setRGB(x, y, asGrayscale(intensityTransform.toInt(dt, d)));
+      image.setPixel(x, y, intensityTransform.toInt(dt, d));
       tNext[x][y] += dt;
       readPixel();
     }
+    
+    // Show prepared frame
+    frame.repaint();
   }
   
   
@@ -162,7 +157,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    */
   private void startPlayerWindow() {
     // Create and set JLabel to hold the image
-    iconLabel = new JLabel(new ImageIcon(image.getScaledInstance(SCALE_FACTOR*h, SCALE_FACTOR*w, Image.SCALE_FAST)));
+    iconLabel = new JLabel(new ImageIcon(image.getImage()));
     iconLabel.setBorder(new EmptyBorder(20, 20, 20, 20)); // top, left, bottom, right
     iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
     
@@ -227,26 +222,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    */
   private int msPerFrame() {
     return 1000/fps;
-  }
-  
-  
-  /**
-   * Static method to package three color bytes as a single integer
-   */
-  private static int getIntFromColor(int r, int g, int b) {
-    r = (r << 16) & 0x00FF0000; // Shift red 16-bits and mask out other stuff
-    g = (g << 8)  & 0x0000FF00; // Shift Green 8-bits and mask out other stuff
-    b =  b        & 0x000000FF; // Mask out anything not blue.
-    
-    return 0xFF000000 | r | g | b; // 0xFF000000 for 100% Alpha. Bitwise OR everything together.
-  }
-  
-  
-  /**
-   * Static method to transform an intensity into a greyscale value
-   */
-  private static int asGrayscale(int intensity) {
-    return getIntFromColor(intensity, intensity, intensity);
   }
   
   
