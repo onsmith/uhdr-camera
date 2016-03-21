@@ -60,15 +60,15 @@ public class Decoder implements Runnable, DataTransform {
     // Fill the scheduler
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        queue.add(new FireEvent(i, j, 0));
+        queue.add(new FireEvent(i, j));
     
     // Use the scheduler to read pixels
     while (true) {
-      FireEvent pfe = queue.remove();   // Remove from queue
-      int dt = readNextPixel();         // Read next value from wire
-      pfe.t += dt;                      // Update t
-      writePixel(pfe.x, pfe.y, dt, iD); // Write to wire
-      queue.add(pfe);                   // Add back to queue
+      FireEvent pfe = queue.remove();       // Remove pixel from queue
+      pfe.dt += readNextPixel();            // Read pixel value change from wire
+      pfe.t  += pfe.dt;                     // Update next firing time
+      writePixel(pfe.x, pfe.y, pfe.dt, iD); // Write to wire
+      queue.add(pfe);                       // Add pixel back to queue
     }
   }
   
@@ -100,35 +100,6 @@ public class Decoder implements Runnable, DataTransform {
     } catch (IOException e) {
       System.out.println("Decoder could not write to output stream. Thread terminated.");
       thread.interrupt();
-    }
-  }
-  
-  
-  /**
-   * Internal class representing a pixel firing at a specific time. Used by the
-   *   internal PriorityQueue to determine which pixel's value will come next.
-   */
-  private static class FireEvent implements Comparable<FireEvent> {
-    public final int x, y; // Pixel's spatial location
-    public       int t;    // Next time this pixel should fire
-    
-    public static int Q = Integer.MAX_VALUE/2;
-    
-    public FireEvent(int x, int y, int t) {
-      this.x = x;
-      this.y = y;
-      this.t = t;
-    }
-    
-    public int compareTo(FireEvent o) {
-      if (t == o.t) {
-        if (x == o.x) return Integer.compare(y, o.y);
-        else          return Integer.compare(x, o.x);
-      }
-      else if (t > Q && o.t < -Q || o.t > Q && t < -Q)
-        return Integer.compare(o.t, t);
-      else
-        return Integer.compare(t, o.t);
     }
   }
 }

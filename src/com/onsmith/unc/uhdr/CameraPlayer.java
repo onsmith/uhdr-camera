@@ -110,8 +110,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
       tNext[x][y] += dt;
       readPixel();
     }
-    
-    // Update icon
   }
   
   
