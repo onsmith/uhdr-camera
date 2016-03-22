@@ -22,11 +22,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 
-public class CameraPlayer implements Runnable, DataSink, ChangeListener {
+public class Player implements Runnable, Sink, ChangeListener {
   private static final int    MIN_FPS = 1;   // Minimum allowed FPS
   private static final int    MAX_FPS = 120; // Maximum allowed FPS
   
-  private static final int SCALE_FACTOR = 4; // Scale factor for the displayed video
+  private static final int SCALE_FACTOR = 3; // Scale factor for the displayed video
   
   private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   
@@ -60,7 +60,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   /**
    * Constructors
    */
-  public CameraPlayer(int w, int h, int clock, int fps, double iMin, double iMax) {
+  public Player(int w, int h, int clock, int fps, double iMin, double iMax) {
     this.clock = clock;
     this.fps   = fps;
     this.iMin  = iMin;
@@ -77,6 +77,25 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    */
   public void pipeFrom(InputStream stream) {
     reader = new DataInputStream(stream);
+  }
+  
+  
+  /**
+   * Method to start/stop the video player
+   */
+  public void start() {
+    // Show the player window
+    startPlayerWindow();
+    
+    // Priming read
+    readPixel();
+    
+    // Begin running the timer
+    fpsUpdate = fps;
+    restartTimer();
+  }
+  public void stop() {
+    if (timer != null) timer.cancel();
   }
   
   
@@ -109,22 +128,6 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   
   
   /**
-   * Method to start a new thread to run the video player
-   */
-  public void start() {
-    // Show the player window
-    startPlayerWindow();
-    
-    // Priming read
-    readPixel();
-    
-    // Begin running the timer
-    fpsUpdate = fps;
-    restartTimer();
-  }
-  
-  
-  /**
    * Internal method to read in the next pixel
    */
   private void readPixel() {
@@ -136,7 +139,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
     }
     catch (IOException e) {
       System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
-      timer.cancel();
+      stop();
       return;
     }
   }
@@ -147,7 +150,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
    */
   private void restartTimer() {
     if (timer != null) timer.cancel();
-    timer = new Timer(true);
+    timer = new Timer("Player", true);
     timer.scheduleAtFixedRate(new TimerTaskShell(this), new Date(), msPerFrame());
   }
   

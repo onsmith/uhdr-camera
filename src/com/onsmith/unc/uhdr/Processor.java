@@ -1,5 +1,6 @@
 package com.onsmith.unc.uhdr;
 
-public interface DataProcessor {
+public interface Processor {
   void start();
+  void stop();
 }

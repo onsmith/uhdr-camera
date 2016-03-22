@@ -1,10 +1,9 @@
 package com.onsmith.unc.uhdr;
 
 import java.io.IOException;
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.BufferedInputStream;
-
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
@@ -13,8 +12,8 @@ public class Controller {
   /**
    * Intrinsic properties of camera
    */
-  public static final int w     = 100;        // Width of camera, in pixels
-  public static final int h     = 100;        // Height of camera, in pixels
+  public static final int w     = 200;        // Width of camera, in pixels
+  public static final int h     = 200;        // Height of camera, in pixels
   public static final int clock = 1000000000; // Camera clock speed, in hertz
   
   
@@ -32,30 +31,30 @@ public class Controller {
     PipedInputStream  pipeIn3  = new PipedInputStream(pipeOut3);
     
     // Pipe data from disk
-    //DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
+    //Source file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
     //file.pipeTo(pipeOut1);
     //file.start();
     
     // Pipe data from emulator
-    DataSource camera = new UnorderedCameraEmulator(w, h, clock, 5);
+    Source camera = new UnorderedEmulator(w, h, clock, 5);
     camera.pipeTo(pipeOut1);
     camera.start();
     
     // Pipe data through encoder
-    DataTransform encoder = new Encoder(w, h);
-    encoder.pipeFrom(pipeIn1);
-    encoder.pipeTo(pipeOut2); // new FileOutputStream("data/temp.data")
-    encoder.start();          // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    Transform encoder = new Encoder(w, h);
+    encoder.pipeFrom(new BufferedInputStream(pipeIn1)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    encoder.pipeTo(pipeOut2);  // new FileOutputStream("data/temp.data")
+    encoder.start();
     
     // Pipe data through decoder
-    DataTransform decoder = new Decoder(w, h, 5);
-    decoder.pipeFrom(pipeIn2); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    Transform decoder = new Decoder(w, h, 5);
+    decoder.pipeFrom(new BufferedInputStream(pipeIn2)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     decoder.pipeTo(pipeOut3);  // new FileOutputStream("data/temp.data")
     decoder.start();
     
     // Pipe data to video player
-    DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
-    player.pipeFrom(pipeIn3); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    Sink player = new Player(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
+    player.pipeFrom(new BufferedInputStream(pipeIn3)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     player.start();
   }
 }

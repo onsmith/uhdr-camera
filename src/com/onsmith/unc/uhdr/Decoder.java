@@ -9,7 +9,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 
-public class Decoder implements Runnable, DataTransform {
+public class Decoder implements Runnable, Transform {
   private final int w, h;  // Video width and height
   
   private DataInputStream  reader; // DataInputStream object for reading input
@@ -42,11 +42,14 @@ public class Decoder implements Runnable, DataTransform {
   
   
   /**
-   * Public method to start a new thread for the decoder
+   * Public methods to start/stop the decoder
    */
   public void start() {
-    thread = new Thread(this);
+    thread = new Thread(this, "Decoder");
     thread.start();
+  }
+  public void stop() {
+    if (thread != null) thread.interrupt();
   }
   
   
@@ -82,7 +85,7 @@ public class Decoder implements Runnable, DataTransform {
     }
     catch (IOException e) {
       System.out.println("Decoder could not read from input stream. Thread terminated.");
-      thread.interrupt();
+      stop();
       return -1;
     }
   }
@@ -99,7 +102,7 @@ public class Decoder implements Runnable, DataTransform {
       writer.writeInt(d);
     } catch (IOException e) {
       System.out.println("Decoder could not write to output stream. Thread terminated.");
-      thread.interrupt();
+      stop();
     }
   }
 }

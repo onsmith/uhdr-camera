@@ -5,7 +5,7 @@ import java.io.OutputStream;
 import java.io.DataOutputStream;
 
 
-abstract public class CameraEmulator implements Runnable, DataSource {
+abstract public class Emulator implements Runnable, Source {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
   private static final double T      = 1.2;              // Wave period
@@ -25,18 +25,12 @@ abstract public class CameraEmulator implements Runnable, DataSource {
   
   
   /**
-   * Public method to start a new thread for the camera emulator
+   * Public methods to start/stop the camera emulator
    */
   public void start() {
-    stop();
-    thread = new Thread(this);
+    thread = new Thread(this, "Emulator");
     thread.start();
   }
-  
-  
-  /**
-   * Public method to stop the current thread
-   */
   public void stop() {
     if (thread != null) thread.interrupt();
   }

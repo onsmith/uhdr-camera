@@ -1,7 +1,7 @@
 package com.onsmith.unc.uhdr;
 
 
-public class UnorderedCameraEmulator extends CameraEmulator {
+public class UnorderedEmulator extends Emulator {
   private static final double timestep = 0.1; // Number of seconds to advance for each iteration
   
   private final int w,     // Width of camera, in pixels
@@ -13,10 +13,10 @@ public class UnorderedCameraEmulator extends CameraEmulator {
   /**
    * Constructor
    */
-  public UnorderedCameraEmulator(int w, int h, int clock) {
+  public UnorderedEmulator(int w, int h, int clock) {
     this(w, h, clock, 5); // Default iD
   }
-  public UnorderedCameraEmulator(int w, int h, int clock, int iD) {
+  public UnorderedEmulator(int w, int h, int clock, int iD) {
     this.w       = w;
     this.h       = h;
     this.clock   = clock;

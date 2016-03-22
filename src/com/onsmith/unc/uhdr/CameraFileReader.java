@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 
-public class CameraFileReader implements Runnable, DataSource {
+public class CameraFileReader implements Runnable, Source {
   private int tLast[][]; // Time when each pixel last fired
   
   private Scanner          reader; // Scanner object to handle reading input from text file
@@ -36,7 +36,19 @@ public class CameraFileReader implements Runnable, DataSource {
   
   
   /**
-   * Method to run the emulator
+   * Method to start/stop the file reader
+   */
+  public void start() {
+    thread = new Thread(this);
+    thread.start();
+  }
+  public void stop() {
+    if (thread != null) thread.interrupt();
+  }
+  
+  
+  /**
+   * Method to run the file reader
    */
   public void run() {
     int x, y, t, d, dt;
@@ -67,23 +79,5 @@ public class CameraFileReader implements Runnable, DataSource {
       stop();
       return;
     }
-  }
-  
-  
-  /**
-   * Method to start a new thread to run the camera emulator
-   */
-  public void start() {
-    stop();
-    thread = new Thread(this);
-    thread.start();
-  }
-  
-  
-  /**
-   * Method to stop the current thread
-   */
-  public void stop() {
-    if (thread != null) thread.interrupt();
   }
 }

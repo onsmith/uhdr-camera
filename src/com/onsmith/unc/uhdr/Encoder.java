@@ -11,7 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 
-public class Encoder implements Runnable, DataTransform {
+public class Encoder implements Runnable, Transform {
   private final int w, h;  // Video width and height
   
   private final List<Intensity>[][] buffer; // Structure to buffer pixels
@@ -50,11 +50,14 @@ public class Encoder implements Runnable, DataTransform {
   
   
   /**
-   * Public method to start a new thread for the encoder
+   * Public methods to start/stop the encoder
    */
   public void start() {
-    thread = new Thread(this);
+    thread = new Thread(this, "Encoder");
     thread.start();
+  }
+  public void stop() {
+    if (thread != null) thread.interrupt();
   }
   
   
@@ -104,7 +107,7 @@ public class Encoder implements Runnable, DataTransform {
     }
     catch (IOException e) {
       System.out.println("Encoder could not read from input stream. Thread terminated.");
-      thread.interrupt();
+      stop();
     }
   }
   
@@ -117,7 +120,7 @@ public class Encoder implements Runnable, DataTransform {
       writer.writeInt(dt);
     } catch (IOException e) {
       System.out.println("Encoder could not write to output stream. Thread terminated.");
-      thread.interrupt();
+      stop();
     }
   }
   

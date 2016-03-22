@@ -4,7 +4,7 @@ import java.util.Queue;
 import java.util.PriorityQueue;
 
 
-public class OrderedCameraEmulator extends CameraEmulator {
+public class OrderedEmulator extends Emulator {
   private final int w,     // Width of camera, in pixels
                     h,     // Height of camera, in pixels
                     clock, // Camera clock speed, in hertz
@@ -14,10 +14,10 @@ public class OrderedCameraEmulator extends CameraEmulator {
   /**
    * Constructor
    */
-  public OrderedCameraEmulator(int w, int h, int clock) {
+  public OrderedEmulator(int w, int h, int clock) {
     this(w, h, clock, 5); // Default iD
   }
-  public OrderedCameraEmulator(int w, int h, int clock, int iD) {
+  public OrderedEmulator(int w, int h, int clock, int iD) {
     this.w       = w;
     this.h       = h;
     this.clock   = clock;
@@ -42,19 +42,13 @@ public class OrderedCameraEmulator extends CameraEmulator {
     
     // Main function loop
     while (true) {
-      // Get next pixel to write
-      PixelFire pfe = queue.remove();
-      
-      // Write pixel
-      writePixel(pfe.x, pfe.y, pfe.dt, pfe.d);
-      
-      // This is where D would be updated
-      
-      // Reset pixel to fire again
-      double t = findRoot(pfe.x, pfe.y, pfe.d, pfe.t);
-      pfe.dt = (int) Math.ceil((t - pfe.t)*clock);
-      pfe.t  = t;
-      queue.add(pfe);
+      PixelFire pfe = queue.remove();                  // Get next pixel to fire
+      writePixel(pfe.x, pfe.y, pfe.dt, pfe.d);         // Write pixel to output stream
+                                                       // TODO: Update D
+      double t = findRoot(pfe.x, pfe.y, pfe.d, pfe.t); // Calculate next time to fire
+      pfe.dt = (int) Math.ceil((t - pfe.t)*clock);     // Update dt in data structure
+      pfe.t  = t;                                      // Update t in data structure
+      queue.add(pfe);                                  // Re-queue data structure
     }
   }
   
@@ -76,6 +70,7 @@ public class OrderedCameraEmulator extends CameraEmulator {
       this.dt = dt;
     }
     
+    // Note: Order is undefined if two pixels are fired at the same time
     public int compareTo(PixelFire o) {
       return Double.compare(t, o.t);
     }

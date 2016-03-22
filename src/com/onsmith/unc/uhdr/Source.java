@@ -2,6 +2,6 @@ package com.onsmith.unc.uhdr;
 
 import java.io.OutputStream;
 
-public interface DataSource extends DataProcessor {
+public interface Source extends Processor {
   void pipeTo(OutputStream stream);
 }
