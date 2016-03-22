@@ -1,8 +1,9 @@
 package com.onsmith.unc.uhdr;
 
+import java.io.IOException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.BufferedInputStream;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -32,7 +33,7 @@ public class Controller {
     
     // Pipe data from disk
     //DataSource file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
-    //file.pipeTo(pipeOut);
+    //file.pipeTo(pipeOut1);
     //file.start();
     
     // Pipe data from emulator
@@ -44,17 +45,17 @@ public class Controller {
     DataTransform encoder = new Encoder(w, h);
     encoder.pipeFrom(pipeIn1);
     encoder.pipeTo(pipeOut2); // new FileOutputStream("data/temp.data")
-    encoder.start();          // new FileInputStream("data/temp.data")
+    encoder.start();          // new BufferedInputStream(new FileInputStream("data/temp.data"))
     
     // Pipe data through decoder
     DataTransform decoder = new Decoder(w, h, 5);
-    decoder.pipeFrom(pipeIn2); // new FileInputStream("data/temp.data")
+    decoder.pipeFrom(pipeIn2); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     decoder.pipeTo(pipeOut3);  // new FileOutputStream("data/temp.data")
     decoder.start();
     
     // Pipe data to video player
     DataSink player = new CameraPlayer(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
-    player.pipeFrom(pipeIn3); // new FileInputStream("data/temp.data")
+    player.pipeFrom(pipeIn3); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     player.start();
   }
 }

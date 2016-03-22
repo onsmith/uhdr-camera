@@ -31,7 +31,7 @@ public class CameraPlayer implements Runnable, DataSink, ChangeListener {
   private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   
   private int fps;       // Current fps value
-  private int fpsUpdate; // When the UI updates the fps, this property is changed
+  private int fpsUpdate; // When the UI updates the frame rate, this property is changed
 
   private final int clock; // Clock speed
   
