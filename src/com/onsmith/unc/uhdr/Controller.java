@@ -12,8 +12,8 @@ public class Controller {
   /**
    * Intrinsic properties of camera
    */
-  public static final int w     = 200;        // Width of camera, in pixels
-  public static final int h     = 200;        // Height of camera, in pixels
+  public static final int w     = 100;        // Width of camera, in pixels
+  public static final int h     = 100;        // Height of camera, in pixels
   public static final int clock = 1000000000; // Camera clock speed, in hertz
   
   
@@ -42,19 +42,19 @@ public class Controller {
     
     // Pipe data through encoder
     Transform encoder = new Encoder(w, h);
-    encoder.pipeFrom(new BufferedInputStream(pipeIn1)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    encoder.pipeFrom(pipeIn1); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     encoder.pipeTo(pipeOut2);  // new FileOutputStream("data/temp.data")
     encoder.start();
     
     // Pipe data through decoder
     Transform decoder = new Decoder(w, h, 5);
-    decoder.pipeFrom(new BufferedInputStream(pipeIn2)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    decoder.pipeFrom(pipeIn2); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     decoder.pipeTo(pipeOut3);  // new FileOutputStream("data/temp.data")
     decoder.start();
     
     // Pipe data to video player
     Sink player = new Player(w, h, clock, 30, 0, 600); // width, height, clock speed, fps, iMin, iMax
-    player.pipeFrom(new BufferedInputStream(pipeIn3)); // new BufferedInputStream(new FileInputStream("data/temp.data"))
+    player.pipeFrom(pipeIn3); // new BufferedInputStream(new FileInputStream("data/temp.data"))
     player.start();
   }
 }
