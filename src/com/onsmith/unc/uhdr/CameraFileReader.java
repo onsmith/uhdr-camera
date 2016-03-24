@@ -10,10 +10,10 @@ import java.util.Scanner;
 
 
 public class CameraFileReader implements Runnable, Source {
-  private int tLast[][]; // Time when each pixel last fired
+  private final int tLast[][]; // Time when each pixel last fired
   
-  private Scanner          reader; // Scanner object to handle reading input from text file
-  private DataOutputStream writer; // DataOutputStream object to handle output
+  private final Scanner          reader; // Scanner object to handle reading input from text file
+  private       DataOutputStream writer; // DataOutputStream object to handle output
   
   private Thread thread; // Each instance gets its own thread
   
@@ -51,15 +51,13 @@ public class CameraFileReader implements Runnable, Source {
    * Method to run the file reader
    */
   public void run() {
-    int x, y, t, d, dt;
     try {
       while (true) {
-        y = reader.nextInt();
-        x = reader.nextInt();
-        d = reader.nextInt();
-        t = reader.nextInt();
-        
-        dt = t - tLast[x][y];
+        int y  = reader.nextInt(),
+            x  = reader.nextInt(),
+            d  = reader.nextInt(),
+            t  = reader.nextInt(),
+            dt = t - tLast[x][y];
         
         writer.writeInt(x);
         writer.writeInt(y);
