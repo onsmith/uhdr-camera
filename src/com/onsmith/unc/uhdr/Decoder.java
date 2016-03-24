@@ -10,14 +10,14 @@ import java.util.Queue;
 
 
 public class Decoder implements Runnable, Transform {
-  private final int w, h;  // Video width and height
+  protected final int w, h;  // Video width and height
   
   private DataInputStream  reader; // DataInputStream object for reading input
   private DataOutputStream writer; // DataOutputStream object for writing output
   
   private Thread thread; // Every Decoder runs its own thread
   
-  private final int iD; // Initial value of D
+  protected final int iD; // Initial value of D
   
   
   /**
@@ -79,7 +79,7 @@ public class Decoder implements Runnable, Transform {
   /**
    * Method to read a pixel from the wire
    */
-  private int readNextPixel() {
+  protected int readNextPixel() {
     try {
       return reader.readInt();
     }
@@ -94,7 +94,7 @@ public class Decoder implements Runnable, Transform {
   /**
    * Method to write a specified PixelFire to the wire
    */
-  private void writePixel(int x, int y, int dt, int d) {
+  protected void writePixel(int x, int y, int dt, int d) {
     try {
       writer.writeInt(x);
       writer.writeInt(y);

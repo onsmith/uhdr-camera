@@ -12,7 +12,7 @@ import java.util.Queue;
 
 
 public class Encoder implements Runnable, Transform {
-  private final int w, h;  // Video width and height
+  protected final int w, h; // Video width and height
   
   private final List<Intensity>[][] buffer; // Structure to buffer pixels
   
@@ -31,7 +31,7 @@ public class Encoder implements Runnable, Transform {
     this.h = h;
     
     // Initialize buffer structure
-    buffer = (List<Intensity>[][]) new List[w][h];
+    buffer = new List[w][h];
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
         buffer[i][j] = new ArrayList<Intensity>(20);
@@ -88,7 +88,7 @@ public class Encoder implements Runnable, Transform {
   /**
    * Method to pop the next Intensity for a given pixel from the buffer
    */
-  private Intensity nextIncoming(int x, int y) {
+  protected Intensity nextIncoming(int x, int y) {
     while (buffer[x][y].isEmpty()) readNextPixel();
     return buffer[x][y].remove(0);
   }
@@ -115,7 +115,7 @@ public class Encoder implements Runnable, Transform {
   /**
    * Method to write a specified pixel to the wire
    */
-  private void writePixel(int dt) {
+  protected void writePixel(int dt) {
     try {
       writer.writeInt(dt);
     } catch (IOException e) {
@@ -128,7 +128,7 @@ public class Encoder implements Runnable, Transform {
   /**
    * Internal class to store a pixel intensity value
    */
-  private static class Intensity {
+  protected static class Intensity {
     public final int dt, d;
     
     public Intensity(int dt, int d) {
