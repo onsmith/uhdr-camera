@@ -1,140 +1,46 @@
 package com.onsmith.unc.uhdr;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.Iterator;
 import java.util.Queue;
+import java.util.PriorityQueue;
 
 
-public class Encoder implements Runnable, Transform {
-  private final int w, h;  // Video width and height
-  
-  private final List<Intensity>[][] buffer; // Structure to buffer pixels
-  
-  private DataInputStream  reader; // DataInputStream object for reading input
-  private DataOutputStream writer; // DataOutputStream object for writing output
-  
-  private Thread thread; // Every Encoder runs its own thread
+public class Encoder implements Iterator<Integer> {
+  private final Queue<PixelFire>     queue;  // Schedules pixels
+  private final PixelFireDemodulator buffer; // Demodulates and buffers pixels
   
   
   /**
    *  Constructor
    */
-  @SuppressWarnings("unchecked")
-  public Encoder(int w, int h) {
-    this.w = w;
-    this.h = h;
+  public Encoder(int w, int h, Iterator<PixelFire> input) {
+    // Initialize buffer
+    buffer = new PixelFireDemodulator(w, h, input);
     
-    // Initialize buffer structure
-    buffer = (List<Intensity>[][]) new List[w][h];
+    // Initialize and fill scheduler
+    queue = new PriorityQueue<PixelFire>(w*h, new CameraOrder());
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        buffer[i][j] = new ArrayList<Intensity>(20);
+        queue.add(new PixelFire(i, j));
   }
   
   
   /**
-   * Public methods to set input/output streams
+   * Iterator interface hasNext() method
    */
-  public void pipeFrom(InputStream stream) {
-    reader = new DataInputStream(stream);
-  }
-  public void pipeTo(OutputStream stream) {
-    writer = new DataOutputStream(stream);
+  public boolean hasNext() {
+    return buffer.hasNext();
   }
   
   
   /**
-   * Public methods to start/stop the encoder
+   * Iterator interface next() method
    */
-  public void start() {
-    thread = new Thread(this, "Encoder");
-    thread.start();
-  }
-  public void stop() {
-    if (thread != null) thread.interrupt();
-  }
-  
-  
-  /**
-   * Method to run the encoder
-   */
-  public void run() {
-    // Set up a PriorityQueue to schedule the FireEvents
-    Queue<FireEvent> queue = new PriorityQueue<FireEvent>();
-    
-    // Fill the scheduler
-    for (int i=0; i<w; i++)
-      for (int j=0; j<h; j++)
-        queue.add(new FireEvent(i, j));
-    
-    // Use the scheduler to write pixels to the wire
-    while (true) {
-      FireEvent pfe = queue.remove();            // Remove pixel from queue
-      Intensity pi = nextIncoming(pfe.x, pfe.y); // Get next intensity value from buffer
-      writePixel(pi.dt - pfe.dt);                // Write pixel value change to wire
-      pfe.dt = pi.dt;                            // Update last pixel value
-      pfe.t += pi.dt;                            // Update next firing time
-      queue.add(pfe);                            // Add pixel back to queue
-    }
-  }
-  
-  
-  /**
-   * Method to pop the next Intensity for a given pixel from the buffer
-   */
-  private Intensity nextIncoming(int x, int y) {
-    while (buffer[x][y].isEmpty()) readNextPixel();
-    return buffer[x][y].remove(0);
-  }
-  
-  
-  /**
-   * Method to read a PixelFire from the wire into the buffer
-   */
-  private void readNextPixel() {
-    try {
-      int x  = reader.readInt(),
-          y  = reader.readInt(),
-          dt = reader.readInt(),
-          d  = reader.readInt();
-      buffer[x][y].add(new Intensity(dt, d));
-    }
-    catch (IOException e) {
-      System.out.println("Encoder could not read from input stream. Thread terminated.");
-      stop();
-    }
-  }
-  
-  
-  /**
-   * Method to write a specified pixel to the wire
-   */
-  private void writePixel(int dt) {
-    try {
-      writer.writeInt(dt);
-    } catch (IOException e) {
-      System.out.println("Encoder could not write to output stream. Thread terminated.");
-      stop();
-    }
-  }
-  
-  
-  /**
-   * Internal class to store a pixel intensity value
-   */
-  private static class Intensity {
-    public final int dt, d;
-    
-    public Intensity(int dt, int d) {
-      this.dt = dt;
-      this.d  = d;
-    }
+  public Integer next() {
+    PixelFire pf = queue.remove(); // Which pixel should go next?
+    pf = buffer.next(pf.x, pf.y);  // Okay, get the next value for that pixel
+    queue.add(pf);                 // Add back to scheduler
+    return pf.dt;                  // Return the new dt value
   }
   
   

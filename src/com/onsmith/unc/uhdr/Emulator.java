@@ -1,11 +1,9 @@
 package com.onsmith.unc.uhdr;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.DataOutputStream;
+import java.util.Iterator;
 
 
-abstract public class Emulator implements Runnable, Source {
+abstract public class Emulator implements Iterator<PixelFire> {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
   private static final double T      = 1.2;              // Wave period
@@ -19,50 +17,12 @@ abstract public class Emulator implements Runnable, Source {
     //{ 60,  25,  50}
   };
   
-  private DataOutputStream writer; // DataOutputStream object to handle output
-  
-  private Thread thread; // Every CameraEmulator instance gets its own thread
-  
   
   /**
-   * Public methods to start/stop the camera emulator
+   * Iterator hasNext() method
    */
-  public void start() {
-    thread = new Thread(this, "Emulator");
-    thread.start();
-  }
-  public void stop() {
-    if (thread != null) thread.interrupt();
-  }
-  
-  
-  /**
-   * Public method to set the output stream
-   */
-  public void pipeTo(OutputStream stream) {
-    this.writer = new DataOutputStream(stream);
-  }
-  
-  
-  /**
-   * Method to run the emulator
-   */
-  abstract public void run();
-  
-  
-  /**
-   * Method to write a pixel to the wire
-   */
-  protected void writePixel(int x, int y, int dt, int d) {
-    try {
-      writer.writeInt(x);
-      writer.writeInt(y);
-      writer.writeInt(dt);
-      writer.writeInt(d);
-    } catch (IOException e) {
-      System.out.println("CameraEmulator could not write to output stream. Thread terminated.");
-      this.stop();
-    }
+  public boolean hasNext() {
+    return true;
   }
   
   

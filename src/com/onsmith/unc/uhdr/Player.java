@@ -1,11 +1,8 @@
 package com.onsmith.unc.uhdr;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Timer;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.DataInputStream;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -22,11 +19,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 
-public class Player implements Runnable, Sink, ChangeListener {
-  private static final int    MIN_FPS = 1;   // Minimum allowed FPS
-  private static final int    MAX_FPS = 120; // Maximum allowed FPS
+public class Player implements Runnable, ChangeListener {
+  private static final int MIN_FPS = 1;   // Minimum allowed FPS
+  private static final int MAX_FPS = 120; // Maximum allowed FPS
   
-  private static final int SCALE_FACTOR = 3; // Scale factor for the displayed video
+  private static final int SCALE_FACTOR = 8; // Scale factor for the displayed video
   
   private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   
@@ -35,13 +32,12 @@ public class Player implements Runnable, Sink, ChangeListener {
 
   private final int clock; // Clock speed
   
-  private int x, y, dt, d; // Stores the last pixel read
+  private PixelFire pf; // Stores the next pixel to display
   
-  private long     tNow;  // Current time
-  private long[][] tNext; // Next time that each pixel needs to be changed
+  private int tNow; // Current time
   
-  private DataInputStream reader; // Input stream object
-
+  private final Iterator<PixelFire> input; // Input stream of pixel fires
+  
   private JFrame frame;        // JFrame to house the player
   private JLabel iconLabel;    // Label to house the image
   private JSlider fpsControl,  // Slider that controls the player fps
@@ -54,29 +50,21 @@ public class Player implements Runnable, Sink, ChangeListener {
   
   private IntensityTransform intensityTransform; // Delegate intensity transformation to an IntensityTransform object
   
-  private static final long Q = Long.MAX_VALUE/2; // Factor used for dealing with integer overflow
+  private static final int Q = Integer.MAX_VALUE/2; // Factor used for dealing with integer overflow
   
   
   /**
    * Constructors
    */
-  public Player(int w, int h, int clock, int fps, double iMin, double iMax) {
+  public Player(int w, int h, int clock, int fps, double iMin, double iMax, Iterator<PixelFire> input) {
     this.clock = clock;
     this.fps   = fps;
     this.iMin  = iMin;
     this.iMax  = iMax;
+    this.input = input;
     
-    tNext = new long[w][h];
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
     image = new ScaledGrayscaleImage(w, h, SCALE_FACTOR);
-  }
-  
-  
-  /**
-   * Method to set the input stream
-   */
-  public void pipeFrom(InputStream stream) {
-    reader = new DataInputStream(stream);
   }
   
   
@@ -88,7 +76,7 @@ public class Player implements Runnable, Sink, ChangeListener {
     startPlayerWindow();
     
     // Priming read
-    readPixel();
+    pf = input.next();
     
     // Begin running the timer
     fpsUpdate = fps;
@@ -114,34 +102,15 @@ public class Player implements Runnable, Sink, ChangeListener {
     tNow += ticksPerFrame();
     
     // Prepare next frame
-    //   Keep sending pixels to the image while (tNext[x][y] < tNow)
+    //   Keep sending pixels to the image while (tShow < tNow)
     //   Check for possible overflow
-    while (tNext[x][y] < tNow && (tNext[x][y] > -Q || tNow < Q) || tNext[x][y] > Q && tNow < -Q) {
-      image.setPixel(x, y, intensityTransform.toInt(dt, d));
-      tNext[x][y] += dt;
-      readPixel();
+    while (pf.tShow < tNow && (pf.tShow > -Q || tNow < Q) || pf.tShow > Q && tNow < -Q) {
+      image.setPixel(pf.x, pf.y, intensityTransform.toInt(pf.dt, pf.d));
+      pf = input.next();
     }
     
     // Show prepared frame
     frame.repaint();
-  }
-  
-  
-  /**
-   * Internal method to read in the next pixel
-   */
-  private void readPixel() {
-    try {
-      x  = reader.readInt();
-      y  = reader.readInt();
-      dt = reader.readInt();
-      d  = reader.readInt();
-    }
-    catch (IOException e) {
-      System.out.println("CameraPlayer could not read from input stream. Thread terminated.");
-      stop();
-      return;
-    }
   }
   
   
@@ -229,7 +198,7 @@ public class Player implements Runnable, Sink, ChangeListener {
   
   
   /**
-   * Method to handle UI updates
+   *  ChangeListener interface stateChanged() method
    */
   public void stateChanged(ChangeEvent e) {
     fpsUpdate = fpsControl.getValue();

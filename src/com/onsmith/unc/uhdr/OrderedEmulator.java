@@ -5,73 +5,61 @@ import java.util.PriorityQueue;
 
 
 public class OrderedEmulator extends Emulator {
-  private final int w,     // Width of camera, in pixels
-                    h,     // Height of camera, in pixels
-                    clock, // Camera clock speed, in hertz
-                    iD;    // Initial value of d
+  private final int                clock; // Camera clock speed, in hertz
+  private       Queue<CameraPixel> queue; // Decides which pixel to fire next
   
   
   /**
    * Constructor
    */
-  public OrderedEmulator(int w, int h, int clock) {
-    this(w, h, clock, 5); // Default iD
-  }
   public OrderedEmulator(int w, int h, int clock, int iD) {
-    this.w       = w;
-    this.h       = h;
-    this.clock   = clock;
-    this.iD      = iD;
+    this.clock = clock;
+    
+    queue = new PriorityQueue<CameraPixel>();
+    for (int x=0; x<w; x++)
+      for (int y=0; y<h; y++)
+        queue.add(new CameraPixel(x, y, iD));
   }
   
   
   /**
-   * Run function implements emulator algorithm
+   * Iterator next() method
    */
-  public void run() {
-    // Queue to keep track of which pixel to write next
-    Queue<PixelFire>queue = new PriorityQueue<PixelFire>();
-    
-    // Load every pixel into the queue
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        double t = findRoot(i, j, iD, 0);
-        queue.add(new PixelFire(i, j, (int) Math.ceil(t*clock), iD, t));
-      }
-    }
-    
-    // Main function loop
-    while (true) {
-      PixelFire pfe = queue.remove();                  // Get next pixel to fire
-      writePixel(pfe.x, pfe.y, pfe.dt, pfe.d);         // Write pixel to output stream
-                                                       // TODO: Update D
-      double t = findRoot(pfe.x, pfe.y, pfe.d, pfe.t); // Calculate next time to fire
-      pfe.dt = (int) Math.ceil((t - pfe.t)*clock);     // Update dt in data structure
-      pfe.t  = t;                                      // Update t in data structure
-      queue.add(pfe);                                  // Re-queue data structure
-    }
+  public PixelFire next() {
+    CameraPixel p = queue.remove();
+    PixelFire pfe = new PixelFire(p.x, p.y, p.dt, p.d, p.ticks);
+    p.fire();
+    queue.add(p);
+    return pfe;
   }
   
   
   /**
-   * Internal class representing a single pixel firing at a specific time. Used
-   *   by the internal PriorityQueue to determine which pixel to fire next.
+   * Internal class representing a single pixel in the camera. Used by the
+   *   internal PriorityQueue to determine which pixel to fire next.
    */
-  private static class PixelFire implements Comparable<PixelFire> {
+  private class CameraPixel implements Comparable<CameraPixel> {
     public final int    x, y;  // Spatial location of the pixel
-    public       int    d, dt; // Intensity value of the pixel when it fires
-    public       double t;     // Time at which the pixel should fire
+    public       int    d, dt, // Intensity value when pixel fires
+                        ticks; // Clock time when pixel fires
+    public       double t;     // Actual time when pixel fires
     
-    public PixelFire(int x, int y, int dt, int d, double t) {
-      this.x  = x;
-      this.y  = y;
-      this.t  = t;
-      this.d  = d;
-      this.dt = dt;
+    public CameraPixel(int x, int y, int d) {
+      this.x = x;
+      this.y = y;
+      this.d = d;
+      fire();
+    }
+    
+    public void fire() {
+      double tNext = findRoot(x, y, d, t);
+      dt = (int) Math.ceil((tNext - t)*clock);
+      t = tNext;
+      ticks += dt;
     }
     
     // Note: Order is undefined if two pixels are fired at the same time
-    public int compareTo(PixelFire o) {
+    public int compareTo(CameraPixel o) {
       return Double.compare(t, o.t);
     }
   }

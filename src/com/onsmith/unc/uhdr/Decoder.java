@@ -1,108 +1,50 @@
 package com.onsmith.unc.uhdr;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
 
-public class Decoder implements Runnable, Transform {
-  private final int w, h;  // Video width and height
-  
-  private DataInputStream  reader; // DataInputStream object for reading input
-  private DataOutputStream writer; // DataOutputStream object for writing output
-  
-  private Thread thread; // Every Decoder runs its own thread
-  
-  private final int iD; // Initial value of D
+public class Decoder implements Iterator<PixelFire> {
+  private final Iterator<Integer> input; // Input stream of integers
+  private final Queue<PixelFire>  queue; // Scheduler
   
   
   /**
    *  Constructor
    */
-  public Decoder(int w, int h, int iD) {
-    this.w  = w;
-    this.h  = h;
-    this.iD = iD;
-  }
-  
-  
-  /**
-   * Public methods to set input/output streams
-   */
-  public void pipeFrom(InputStream stream) {
-    reader = new DataInputStream(stream);
-  }
-  public void pipeTo(OutputStream stream) {
-    writer = new DataOutputStream(stream);
-  }
-  
-  
-  /**
-   * Public methods to start/stop the decoder
-   */
-  public void start() {
-    thread = new Thread(this, "Decoder");
-    thread.start();
-  }
-  public void stop() {
-    if (thread != null) thread.interrupt();
-  }
-  
-  
-  /**
-   * Method to run the decoder
-   */
-  public void run() {
-    // Set up a PriorityQueue to schedule pixel fires
-    Queue<FireEvent> queue = new PriorityQueue<FireEvent>();
+  public Decoder(int w, int h, int iD, Iterator<Integer> input) {
+    this.input = input;
     
-    // Fill the scheduler
+    // Initialize and fill scheduler
+    queue = new PriorityQueue<PixelFire>(w*h, new CameraOrder());
     for (int i=0; i<w; i++)
       for (int j=0; j<h; j++)
-        queue.add(new FireEvent(i, j));
-    
-    // Use the scheduler to read pixels
-    while (true) {
-      FireEvent pfe = queue.remove();       // Remove pixel from queue
-      pfe.dt += readNextPixel();            // Read pixel value change from wire
-      pfe.t  += pfe.dt;                     // Update next firing time
-      writePixel(pfe.x, pfe.y, pfe.dt, iD); // Write to wire
-      queue.add(pfe);                       // Add pixel back to queue
-    }
+        queue.add(new PixelFire(i, j, iD));
   }
   
   
   /**
-   * Method to read a pixel from the wire
+   * Iterator interface hasNext() method
    */
-  private int readNextPixel() {
-    try {
-      return reader.readInt();
-    }
-    catch (IOException e) {
-      System.out.println("Decoder could not read from input stream. Thread terminated.");
-      stop();
-      return -1;
-    }
+  public boolean hasNext() {
+    return input.hasNext();
   }
   
   
   /**
-   * Method to write a specified PixelFire to the wire
+   * Iterator interface next() method
    */
-  private void writePixel(int x, int y, int dt, int d) {
-    try {
-      writer.writeInt(x);
-      writer.writeInt(y);
-      writer.writeInt(dt);
-      writer.writeInt(d);
-    } catch (IOException e) {
-      System.out.println("Decoder could not write to output stream. Thread terminated.");
-      stop();
-    }
+  public PixelFire next() {
+    PixelFire pf = queue.remove();
+    int dt = input.next();
+    pf = new PixelFire(
+        pf.x, pf.y,
+        dt,
+        pf.d,
+        pf.tFire+dt
+    );
+    queue.add(pf);
+    return pf;
   }
 }
