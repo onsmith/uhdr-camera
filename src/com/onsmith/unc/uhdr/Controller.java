@@ -19,15 +19,15 @@ public class Controller {
     //Iterator<PixelFire> file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
     
     // Get data from emulator
-    Iterator<PixelFire> camera = new OrderedEmulator(w, h, clock, iD);
+    Iterator<PixelFire> camera = new NaturalWaveEmulator(w, h, clock, iD);
     
     // Pipe data through encoder
-    //Iterator<Integer> encoder = new Encoder(w, h, camera);
-    Iterator<Integer> encoder = new PeriodicEncoder(w, h, clock, camera);
+    //Iterator<Integer> encoder = new NaturalEncoder(w, h, camera);
+    Iterator<Integer> encoder = new WindowEncoder(w, h, clock, camera);
     
     // Pipe data through decoder
-    //Iterator<PixelFire> decoder = new Decoder(w, h, iD, encoder);
-    Iterator<PixelFire> decoder = new PeriodicDecoder(w, h, iD, clock, encoder);
+    //Iterator<PixelFire> decoder = new NaturalDecoder(w, h, iD, encoder);
+    Iterator<PixelFire> decoder = new WindowDecoder(w, h, iD, clock, encoder);
     
     // Pipe data to video player
     Player player = new Player(w, h, clock, 30, 0, 600, decoder); // width, height, clock speed, fps, iMin, iMax, input

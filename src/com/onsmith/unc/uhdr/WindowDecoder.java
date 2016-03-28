@@ -3,9 +3,9 @@ package com.onsmith.unc.uhdr;
 import java.util.Iterator;
 
 
-public class PeriodicDecoder implements Iterator<PixelFire> {
+public class WindowDecoder implements Iterator<PixelFire> {
   private static final double timestep = 0.01; // Period width in seconds
-
+  
   private int x, y; // Next pixel to send
   private int t;    // Clock time when the current period ends
   
@@ -20,7 +20,7 @@ public class PeriodicDecoder implements Iterator<PixelFire> {
   /**
    *  Constructor
    */
-  public PeriodicDecoder(int w, int h, int iD, int clock, Iterator<Integer> input) {
+  public WindowDecoder(int w, int h, int iD, int clock, Iterator<Integer> input) {
     this.w = w;
     this.h = h;
     this.input = input;

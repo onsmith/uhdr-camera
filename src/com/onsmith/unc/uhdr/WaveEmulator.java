@@ -3,10 +3,10 @@ package com.onsmith.unc.uhdr;
 import java.util.Iterator;
 
 
-abstract public class Emulator implements Iterator<PixelFire> {
+abstract public class WaveEmulator implements Iterator<PixelFire> {
   private static final double l      = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r      = Math.pow(2, 9);   // Maximum value of the intensity function
-  private static final double T      = 1.2;              // Wave period
+  private static final double T      = 3.2;              // Wave period
   private static final double tol    = Math.pow(10, -5); // Root finding algorithm tolerance
   
   

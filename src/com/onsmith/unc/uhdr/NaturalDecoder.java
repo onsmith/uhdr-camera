@@ -5,7 +5,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 
 
-public class Decoder implements Iterator<PixelFire> {
+public class NaturalDecoder implements Iterator<PixelFire> {
   private final Iterator<Integer> input; // Input stream of integers
   private final Queue<PixelFire>  queue; // Scheduler
   
@@ -13,7 +13,7 @@ public class Decoder implements Iterator<PixelFire> {
   /**
    *  Constructor
    */
-  public Decoder(int w, int h, int iD, Iterator<Integer> input) {
+  public NaturalDecoder(int w, int h, int iD, Iterator<Integer> input) {
     this.input = input;
     
     // Initialize and fill scheduler

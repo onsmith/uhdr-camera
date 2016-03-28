@@ -5,7 +5,7 @@ import java.util.Queue;
 import java.util.PriorityQueue;
 
 
-public class Encoder implements Iterator<Integer> {
+public class NaturalEncoder implements Iterator<Integer> {
   private final Queue<PixelFire>     queue;  // Schedules pixels
   private final PixelFireDemodulator buffer; // Demodulates and buffers pixels
   
@@ -13,7 +13,7 @@ public class Encoder implements Iterator<Integer> {
   /**
    *  Constructor
    */
-  public Encoder(int w, int h, Iterator<PixelFire> input) {
+  public NaturalEncoder(int w, int h, Iterator<PixelFire> input) {
     // Initialize buffer
     buffer = new PixelFireDemodulator(w, h, input);
     

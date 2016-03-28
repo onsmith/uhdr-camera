@@ -3,23 +3,23 @@ package com.onsmith.unc.uhdr;
 import java.util.Iterator;
 
 
-public class PeriodicEncoder implements Iterator<Integer> {
+public class WindowEncoder implements Iterator<Integer> {
   private static final double timestep = 0.01; // Frame width in seconds
-
+  
   private int x, y; // Next pixel to send
   private int t;    // Clock time when the current period ends
   
   private final int                  tAdvance; // Frame width in clock ticks
   private final int                  w, h;     // Width and height of image
   private final PixelFireDemodulator buffer;   // Demodulates and buffers pixels
-
+  
   private static final int Q = Integer.MAX_VALUE/2;
   
   
   /**
    *  Constructor
    */
-  public PeriodicEncoder(int w, int h, int clock, Iterator<PixelFire> input) {
+  public WindowEncoder(int w, int h, int clock, Iterator<PixelFire> input) {
     this.w = w;
     this.h = h;
     this.tAdvance = (int) (clock*timestep);

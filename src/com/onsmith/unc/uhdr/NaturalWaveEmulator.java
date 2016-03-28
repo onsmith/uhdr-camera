@@ -4,7 +4,7 @@ import java.util.Queue;
 import java.util.PriorityQueue;
 
 
-public class OrderedEmulator extends Emulator {
+public class NaturalWaveEmulator extends WaveEmulator {
   private final int                clock; // Camera clock speed, in hertz
   private       Queue<CameraPixel> queue; // Decides which pixel to fire next
   
@@ -12,7 +12,7 @@ public class OrderedEmulator extends Emulator {
   /**
    * Constructor
    */
-  public OrderedEmulator(int w, int h, int clock, int iD) {
+  public NaturalWaveEmulator(int w, int h, int clock, int iD) {
     this.clock = clock;
     
     queue = new PriorityQueue<CameraPixel>();
