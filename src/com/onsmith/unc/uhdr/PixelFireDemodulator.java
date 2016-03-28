@@ -45,6 +45,12 @@ public class PixelFireDemodulator {
   }
   
   
+  public PixelFire peek(int x, int y) {
+    while (buffer[x][y].isEmpty()) bufferNextPixelFire();
+    return buffer[x][y].peek();
+  }
+  
+  
   /**
    * Method to read a PixelFire from the wire into the buffer
    */
