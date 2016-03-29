@@ -23,7 +23,7 @@ public class Player implements Runnable, ChangeListener {
   private static final int MIN_FPS = 1;   // Minimum allowed FPS
   private static final int MAX_FPS = 120; // Maximum allowed FPS
   
-  private static final int SCALE_FACTOR = 8; // Scale factor for the displayed video
+  private static final int SCALE_FACTOR = 4; // Scale factor for the displayed video
   
   private final double iMin, iMax; // Minimum and maximum allowable intensities (for intensity scaling)
   

@@ -19,7 +19,7 @@ public class Controller {
     //Iterator<PixelFire> file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
     
     // Get data from emulator
-    Iterator<PixelFire> camera = new NaturalWaveEmulator(w, h, clock, iD);
+    Iterator<PixelFire> camera = new NaturalEmulator(w, h, clock, iD);
     
     // Pipe data through encoder
     //Iterator<Integer> encoder = new NaturalEncoder(w, h, camera);
