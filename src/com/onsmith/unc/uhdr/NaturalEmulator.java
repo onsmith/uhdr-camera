@@ -63,7 +63,7 @@ public class NaturalEmulator implements Iterator<PixelFire> {
     }
     
     public void fire() {
-      double tNext = WaveSource.nextFireTime(x, y, d, t);
+      double tNext = AquariumSource.nextFireTime(x, y, d, t);
       dt = (int) Math.ceil((tNext - t)*clock);
       t = tNext;
       ticks += dt;
