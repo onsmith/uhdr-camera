@@ -1,8 +1,11 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.encoding;
 
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.Queue;
+
+import com.onsmith.unc.uhdr.CameraOrder;
+import com.onsmith.unc.uhdr.PixelFire;
 
 
 public class NaturalDecoder implements Iterator<PixelFire> {

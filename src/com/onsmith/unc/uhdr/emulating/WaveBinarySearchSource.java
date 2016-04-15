@@ -1,7 +1,7 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.emulating;
 
 
-abstract public class WaveSource {
+public class WaveBinarySearchSource implements Source {
   private static final double l   = Math.pow(2, 6);   // Minimum value of the intensity function
   private static final double r   = Math.pow(2, 9);   // Maximum value of the intensity function
   private static final double T   = 3.2;              // Wave period
@@ -21,7 +21,7 @@ abstract public class WaveSource {
    *   is monotonically increasing, this is a simple binary search
    *   implementation.
    */
-  public static double nextFireTime(int x, int y, int D, double ti) {
+  public double nextFireTime(int x, int y, int D, double ti) {
     double l = guess(D, ti) - T/4,
            r = l + T/2;
     

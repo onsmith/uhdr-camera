@@ -3,15 +3,23 @@ package com.onsmith.unc.uhdr;
 import java.io.FileNotFoundException;
 import java.util.Iterator;
 
+import com.onsmith.unc.uhdr.emulating.AquariumIntegrationSource;
+import com.onsmith.unc.uhdr.emulating.NaturalEmulator;
+import com.onsmith.unc.uhdr.emulating.WaveBinarySearchSource;
+import com.onsmith.unc.uhdr.emulating.WaveIntegrationSource;
+import com.onsmith.unc.uhdr.encoding.WindowDecoder;
+import com.onsmith.unc.uhdr.encoding.WindowEncoder;
+import com.onsmith.unc.uhdr.playing.Player;
+
 
 public class Controller {
   /**
    * Intrinsic properties of camera
    */
-  public static final int w     = 100;        // Width of camera, in pixels
-  public static final int h     = 100;        // Height of camera, in pixels
-  public static final int clock = 1000000000; // Camera clock speed, in hertz
-  public static final int iD    = 5;          // Initial value for D
+  public static final int w     = 100;         // Width of camera, in pixels
+  public static final int h     = 100;         // Height of camera, in pixels
+  public static final int clock = (0x1 << 13); // Camera clock speed, in hertz
+  public static final int iD    = 5;           // Initial value for D
   
   
   public static void main(String [] args) throws FileNotFoundException {
@@ -19,7 +27,7 @@ public class Controller {
     //Iterator<PixelFire> file = new CameraFileReader(w, h, "data/fixed_D_Output/1wave/D_2/outFrameLess.txt");
     
     // Get data from emulator
-    Iterator<PixelFire> camera = new NaturalEmulator(w, h, clock, iD);
+    Iterator<PixelFire> camera = new NaturalEmulator(w, h, clock, iD, new AquariumIntegrationSource());
     
     // Pipe data through encoder
     //Iterator<Integer> encoder = new NaturalEncoder(w, h, camera);

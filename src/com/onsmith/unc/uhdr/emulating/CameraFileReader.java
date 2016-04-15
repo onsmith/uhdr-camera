@@ -1,9 +1,11 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.emulating;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Iterator;
 import java.util.Scanner;
+
+import com.onsmith.unc.uhdr.PixelFire;
 
 
 public class CameraFileReader implements Iterator<PixelFire> {

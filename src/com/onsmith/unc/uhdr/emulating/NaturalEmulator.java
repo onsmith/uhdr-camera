@@ -1,20 +1,24 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.emulating;
 
 import java.util.Queue;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 
+import com.onsmith.unc.uhdr.PixelFire;
+
 
 public class NaturalEmulator implements Iterator<PixelFire> {
-  private final int                  clock; // Camera clock speed, in hertz
-  private       Queue<EmulatorPixel> queue; // Decides which pixel to fire next
+  private final int                  clock;  // Camera clock speed, in hertz
+  private final Source               source; // Object to calculate pixel firing times
+  private final Queue<EmulatorPixel> queue;  // Decides which pixel to fire next
   
   
   /**
    * Constructor
    */
-  public NaturalEmulator(int w, int h, int clock, int iD) {
-    this.clock = clock;
+  public NaturalEmulator(int w, int h, int clock, int iD, Source source) {
+    this.clock  = clock;
+    this.source = source;
     
     queue = new PriorityQueue<EmulatorPixel>();
     for (int x=0; x<w; x++)
@@ -63,7 +67,7 @@ public class NaturalEmulator implements Iterator<PixelFire> {
     }
     
     public void fire() {
-      double tNext = WaveIntensitySource.nextFireTime(x, y, d, t);
+      double tNext = source.nextFireTime(x, y, d, t);
       dt = (int) Math.ceil((tNext - t)*clock);
       t = tNext;
       ticks += dt;

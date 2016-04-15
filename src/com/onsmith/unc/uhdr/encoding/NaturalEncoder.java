@@ -1,7 +1,12 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.encoding;
 
 import java.util.Iterator;
 import java.util.Queue;
+
+import com.onsmith.unc.uhdr.CameraOrder;
+import com.onsmith.unc.uhdr.PixelFire;
+import com.onsmith.unc.uhdr.PixelFireDemodulator;
+
 import java.util.PriorityQueue;
 
 

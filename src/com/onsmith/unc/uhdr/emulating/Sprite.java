@@ -1,4 +1,4 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.emulating;
 
 import java.awt.image.BufferedImage;
 import java.io.File;

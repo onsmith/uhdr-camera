@@ -1,4 +1,4 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.playing;
 
 public interface IntensityTransform {
   public int    toInt(int dt, int d);

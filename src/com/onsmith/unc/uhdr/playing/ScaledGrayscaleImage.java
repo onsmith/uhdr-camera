@@ -1,4 +1,4 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.playing;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;

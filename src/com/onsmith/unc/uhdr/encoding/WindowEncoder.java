@@ -1,6 +1,9 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.encoding;
 
 import java.util.Iterator;
+
+import com.onsmith.unc.uhdr.PixelFire;
+import com.onsmith.unc.uhdr.PixelFireDemodulator;
 
 
 public class WindowEncoder implements Iterator<Integer> {

@@ -1,4 +1,4 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.playing;
 
 public class LinearIntensityTransform implements IntensityTransform {
   // Parameters for keeping track of observed intensity values
