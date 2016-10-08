@@ -3,6 +3,10 @@ $(function() {
       $environment = $('#pathmaker-environment');
   
   
+  var multiplier = 2,   // pixels
+      period     = 100; // ms
+  
+  
   var cursorX, cursorY;
   document.onmousemove = function(e){
       cursorX = e.pageX - $environment.offset().left;
@@ -12,7 +16,7 @@ $(function() {
   
   function add() {
     $destination.html($destination.html() +
-      "{" + cursorX + ", " + cursorY + "},\n");
+      "{" + cursorX*multiplier + ", " + cursorY*multiplier + "},\n");
   }
   
   
@@ -20,7 +24,7 @@ $(function() {
   $environment.on('mousedown', function(e) {
     clearInterval(interval);
     $destination.html('');
-    interval = setInterval(add, 100);
+    interval = setInterval(add, period);
     
     add(e);
   });

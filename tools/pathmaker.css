@@ -1,23 +1,16 @@
 #pathmaker-environment {
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  top: 5em;
-  left: 50%;
-  margin-left: -100px;
+  width: 960px;
+  height: 540px;
+  margin: 1em auto;
   border: 1px solid red;
   background-color: #e5e5e5;
-  box-shadow: 0, 0, 2px 2px #e5e5e5;
   cursor: default;
 }
 
 
 #pathmaker-destination {
-  position: absolute;
-  top: 10em;
-  left: 10%;
-  width: 80%;
-  bottom: 5em;
-  margin-top: 200px;
-  min-height: 10em;
+  display: block;
+  width: 960px;
+  height: 18em;
+  margin: 1em auto;
 }
