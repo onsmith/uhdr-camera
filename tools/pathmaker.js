@@ -3,8 +3,8 @@ $(function() {
       $environment = $('#pathmaker-environment');
   
   
-  var multiplier = 2,   // pixels
-      period     = 100; // ms
+  var multiplier = 2,  // pixels
+      period     = 10; // ms
   
   
   var cursorX, cursorY;

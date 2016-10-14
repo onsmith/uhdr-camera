@@ -46,16 +46,28 @@ public class SceneIntegrator implements Source<PixelFire> {
 		double iI = scene.getPixel(x, y, ti),
 		       fI = scene.getPixel(x, y, ti + maxDtInSecs);
 		if (iI == fI) {
-			return (int) Math.min(MAXD, Math.floor(Math.log(iI*maxDtInSecs)/Math.log(2)));
+			return boundD((int) Math.floor(Math.log(iI*maxDtInSecs)/Math.log(2)));
 		}
 		return 5;
-		//return (int) Math.max(0, Math.floor(Math.log(iI/clock)/Math.log(2)));
+		//return boundD((int) Math.floor(Math.log(iI/clock)/Math.log(2)));
+	}
+	
+	private static int boundD(int d) {
+		if (d < 0) {
+			return 0;
+		}
+		else if (d > MAXD) {
+			return MAXD;
+		}
+		else {
+			return d;
+		}
 	}
 	
 	private double nextFireTime(int x, int y, int D, double ti) {
 		double sum    = 0,
 		       tf     = ti,
-		       target = (0x1 << D);
+		       target = (double) (0x1 << D);
 		for (int i=0; i<MAXDT*stepsPerTick; i++) {
 			tf  += timestep;
 			sum += scene.getPixel(x, y, tf)*timestep;

@@ -158,7 +158,7 @@ public class FramelessPlayer implements Runnable, ChangeListener {
     
     // Create and set JLabel to hold the min intensity slider
     iMinControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMin);
-    iMinControl.setMajorTickSpacing((int) (iMax - iMin)/10);
+    iMinControl.setMajorTickSpacing((int) (iMax - iMin)/5);
     iMinControl.setMinorTickSpacing((int) (iMax - iMin)/50);
     iMinControl.setPaintTicks(true);
     iMinControl.setPaintLabels(true);
@@ -169,7 +169,7 @@ public class FramelessPlayer implements Runnable, ChangeListener {
     
     // Create and set JLabel to hold the max intensity slider
     iMaxControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMax);
-    iMaxControl.setMajorTickSpacing((int) (iMax - iMin)/10);
+    iMaxControl.setMajorTickSpacing((int) (iMax - iMin)/5);
     iMaxControl.setMinorTickSpacing((int) (iMax - iMin)/50);
     iMaxControl.setPaintTicks(true);
     iMaxControl.setPaintLabels(true);
