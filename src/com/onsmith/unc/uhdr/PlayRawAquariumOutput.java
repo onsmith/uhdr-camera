@@ -8,17 +8,17 @@ public class PlayRawAquariumOutput {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
                            fps   = 30,          // Initial frame rate of player, in hertz
                            iMin  = 0,           // Minimum for player intensity range
-                           iMax  = 1000000;     // Maximum for player intensity range
+                           iMax  = 1000000;    // Maximum for player intensity range
   
   
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 1000000.0);
+    bg = new ScaledHDRImage(bg, 0, 1000000);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 100.0, 10000.0);
+    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
       	{76, 84},

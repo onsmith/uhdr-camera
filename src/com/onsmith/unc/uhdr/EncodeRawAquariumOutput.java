@@ -789,7 +789,7 @@ public class EncodeRawAquariumOutput {
     RawMP4Writer imageWriter = new RawMP4Writer(new File("output.mp4"));
     
     // Pipe source to sink
-    int numFrames = 30 * fps;
+    int numFrames = 5 * fps;
     for (int i=0; i<numFrames; i++) {
       imageWriter.send(imageStream.next());
       if (i%10 == 0) {

@@ -43,13 +43,15 @@ public class SceneIntegrator implements Source<PixelFire> {
 	}
 	
 	private int nextD(int x, int y, double ti) {
-		double iI = scene.getPixel(x, y, ti),
-		       fI = scene.getPixel(x, y, ti + maxDtInSecs);
-		if (iI == fI) {
-			return boundD((int) Math.floor(Math.log(iI*maxDtInSecs)/Math.log(2)));
-		}
-		return 5;
-		//return boundD((int) Math.floor(Math.log(iI/clock)/Math.log(2)));
+		double iI = scene.getPixel(x, y, ti);
+		return boundD((int) (Math.log(iI*maxDtInSecs)/Math.log(2)));
+		//double fI = scene.getPixel(x, y, ti + maxDtInSecs);
+		//if (iI == fI) {
+		//	return boundD((int) (Math.log(iI*maxDtInSecs)/Math.log(2)));
+		//}
+		//return boundD((int) (Math.log(iI*maxDtInSecs)/Math.log(2)));
+		//return 15;
+		//return boundD((int) (Math.log(iI/clock)/Math.log(2)));
 	}
 	
 	private static int boundD(int d) {

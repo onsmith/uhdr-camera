@@ -20,7 +20,7 @@ public class LinearIntensityTransform implements IntensityTransform {
   //   in between are mapped linearly.
   public double toDouble(int dt, int d) {
     //double iRaw = Math.pow(2, d)/((double) dt/clock);
-    double iRaw = (0x1 << d)/((double) dt/clock);
+    double iRaw = (0x1 << d)/(((double) dt)/clock);
     return Math.min(1, Math.max(0, (iRaw - iMin)/iRange));
   }
   
