@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class PlayRawAquariumOutput {
+public class PlayFramedAquariumOutput {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
                            fps   = 30,          // Initial frame rate of player, in hertz
                            iMin  = 0,           // Minimum for player intensity range
@@ -778,12 +778,19 @@ public class PlayRawAquariumOutput {
     HDRScene aquarium = new AquariumScene(bg, sprites);
     Source<PixelFire> aquariumStream = new SceneIntegrator(clock, aquarium);
     
+    // Source<int[][]>
+    Source<int[][]> framedStream = new IntFrameStream(
+      aquariumStream,
+      aquarium.getWidth(),
+      aquarium.getWidth()
+    );
+    
     // Player
-    FramelessPlayer player = new FramelessPlayer(
+    FramedPlayer player = new FramedPlayer(
       aquarium.getWidth(),
       aquarium.getHeight(),
       clock, fps, iMin, iMax,
-      aquariumStream
+      framedStream
     );
     player.start();
   }
