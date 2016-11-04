@@ -20,7 +20,7 @@ public class CanonicalMP4Writer implements Sink<int[][]> {
 	@Override
 	public void send(int[][] frame) {
 		try {
-			encoder.encodeImage(frame);
+			low.enc
 		} catch (IOException e) {
 			System.err.println("Error encoding BufferedImage into SequenceEncoder");
 			e.printStackTrace();
@@ -32,11 +32,7 @@ public class CanonicalMP4Writer implements Sink<int[][]> {
 	}
 	
 	private BufferedImage[] splitFrame(int[][] frame) {
-	  int numStreams = 23/8;
-	  BufferedImage[] list = new BufferedImage[numStreams];
-	  for (int i=0; i<numStreams; i++) {
-	    
-	  }
+	  
 	}
 	
 	public static Image makeImage(int[] pixels, int w, int h) {
