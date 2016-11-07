@@ -3,6 +3,8 @@ package com.onsmith.unc.uhdr;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.Date;
 import java.util.Timer;
 
@@ -32,7 +34,7 @@ public class FramelessPlayer implements Runnable, ChangeListener {
   
   private int tNow; // Current time
   
-  private final GrayBufferedImage image;
+  private final BufferedImage image;
   
   private JFrame  frame;       // JFrame to house the player
   private JLabel  iconLabel;   // Label to house the image
@@ -61,7 +63,7 @@ public class FramelessPlayer implements Runnable, ChangeListener {
     this.input = input;
     
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
-    image              = new GrayBufferedImage(w, h, GrayBufferedImage.TYPE_INT_RGB);
+    image              = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
   }
   
   
@@ -85,8 +87,9 @@ public class FramelessPlayer implements Runnable, ChangeListener {
     // Prepare next frame
     //   Keep sending pixels to the image while (tShow < tNow)
     //   Check for possible overflow
+    WritableRaster raster = image.getRaster();
     while (pf.getTShow() < tNow && (pf.getTShow() > -Q || tNow < Q) || pf.getTShow() > Q && tNow < -Q) {
-      image.setGray(pf.getX(), pf.getY(), intensityTransform.toInt(pf.getDt(), pf.getD()));
+      raster.setSample(pf.getX(), pf.getY(), 0, intensityTransform.toInt(pf.getDt(), pf.getD()));
       pf = input.next();
     }
     

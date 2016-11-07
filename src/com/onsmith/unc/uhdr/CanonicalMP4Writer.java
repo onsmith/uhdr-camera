@@ -3,42 +3,62 @@ package com.onsmith.unc.uhdr;
 import java.io.IOException;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
 import java.io.File;
 
 import org.jcodec.api.awt.SequenceEncoder;
 
-public class CanonicalMP4Writer implements Sink<int[][]> {
-	private final SequenceEncoder low, med, high;
+public class CanonicalMP4Writer implements Sink<IntFrame> {
+	private final SequenceEncoder[] encoders;
+	private static final int BITS_PER_STREAM = 8;
+	private static final int BITMASK = (0x1 << BITS_PER_STREAM) - 1;
 	
-	public CanonicalMP4Writer(File low, File med, File high) throws IOException {
-    this.low  = new SequenceEncoder(low);
-    this.med  = new SequenceEncoder(med);
-    this.high = new SequenceEncoder(high);
+	public CanonicalMP4Writer(File[] files) throws IOException {
+		encoders = new SequenceEncoder[files.length];
+		for (int i=0; i<files.length; i++) {
+			encoders[i] = new SequenceEncoder(files[i]);
+		}
 	}
 	
 	@Override
-	public void send(int[][] frame) {
-		try {
-			low.enc
-		} catch (IOException e) {
-			System.err.println("Error encoding BufferedImage into SequenceEncoder");
-			e.printStackTrace();
+	public void send(IntFrame frame) {
+		int w = frame.getWidth(),
+		    h = frame.getHeight();
+		BufferedImage[] frames = new BufferedImage[encoders.length];
+		WritableRaster[] rasters = new WritableRaster[encoders.length];
+		for (int i=0; i<frames.length; i++) {
+			frames[i]  = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+			rasters[i] = frames[i].getRaster();
+		}
+		for (int x=0; x<w; x++) {
+			for (int y=0; y<h; y++) {
+				for (int i=0; i<encoders.length; i++) {
+					rasters[i].setSample(x, y, 0, frame.getPixel(x, y) >> BITS_PER_STREAM*i);
+				}
+			}
+		}
+		for (int i=0; i<encoders.length; i++) {
+			try {
+				encoders[i].encodeImage(frames[i]);
+			} catch (IOException e) {
+				System.err.println("Error encoding BufferedImage into MP4 file.");
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	public void close() throws IOException {
-		encoder.finish();
+		for (SequenceEncoder encoder : encoders) {
+			encoder.finish();
+		}
 	}
 	
-	private BufferedImage[] splitFrame(int[][] frame) {
-	  
-	}
-	
-	public static Image makeImage(int[] pixels, int w, int h) {
-    BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-    WritableRaster raster = (WritableRaster) image.getData();
-    raster.setPixels(0, 0, w, h, pixels);
-    return image;
+	public static BufferedImage wrapAsImage(int[] pixels, int w, int h) {
+		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+		WritableRaster raster = (WritableRaster) image.getData();
+		raster.setPixels(0, 0, w, h, pixels);
+		return image;
 	}
 }

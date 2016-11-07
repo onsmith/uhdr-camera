@@ -3,6 +3,8 @@ package com.onsmith.unc.uhdr;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.util.Date;
 import java.util.Timer;
 
@@ -33,8 +35,8 @@ public class FramedPlayer implements Runnable, ChangeListener {
   private final int w, h; // Width and height
   private final static int DMAX = 0xF;
   
-  private int[][] hdrFrame; // HDR version of the current frame
-  private final GrayBufferedImage image; // Current frame
+  private final IntFrame      hdrFrame; // HDR version of the current frame
+  private final BufferedImage image;    // Current frame as displayed on screen
   
   private JFrame  frame;       // JFrame to house the player
   private JLabel  iconLabel;   // Label to house the image
@@ -44,7 +46,7 @@ public class FramedPlayer implements Runnable, ChangeListener {
   
   private Timer timer; // Timer to periodically call run()
   
-  private final Source<int[][]> input; // Source of frames to play
+  private final Source<IntFrame> input; // Source of frames to play
   
   private IntensityTransform intensityTransform; // Delegate intensity transformation to an IntensityTransform object
   
@@ -53,7 +55,7 @@ public class FramedPlayer implements Runnable, ChangeListener {
   /**
    * Constructor
    */
-  public FramedPlayer(int w, int h, int clock, int fps, double iMin, double iMax, Source<int[][]> input) {
+  public FramedPlayer(int w, int h, int clock, int fps, double iMin, double iMax, Source<IntFrame> input) {
     this.clock = clock;
     this.fps   = fps;
     this.iMin  = iMin;
@@ -62,9 +64,9 @@ public class FramedPlayer implements Runnable, ChangeListener {
     this.w     = w;
     this.h     = h;
     
-    hdrFrame           = new int[w][h];
+    hdrFrame           = new IntFrame(w, h);
+    image              = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
-    image              = new GrayBufferedImage(w, h, GrayBufferedImage.TYPE_INT_RGB);
   }
   
   
@@ -86,17 +88,19 @@ public class FramedPlayer implements Runnable, ChangeListener {
     tNow += ticksPerFrame();
     
     // Skip through hdr frames
-    int[][] currentHdrFrame = input.next();
+    IntFrame currentHdrFrame = input.next();
     for (int i=1; i<ticksPerFrame(); i++) {
       currentHdrFrame = input.next();
     }
     
     // Update changed pixels
+    WritableRaster imageRaster = image.getRaster();
     for (int i=0; i<w; i++) {
       for (int j=0; j<h; j++) {
-        if (currentHdrFrame[i][j] != hdrFrame[i][j]) {
-          hdrFrame[i][j] = currentHdrFrame[i][j];
-          image.setGray(i, j, intensityTransform.toInt(hdrFrame[i][j], DMAX));
+        if (currentHdrFrame.getPixel(i,j) != hdrFrame.getPixel(i,j)) {
+          int dt = currentHdrFrame.getPixel(i,j);
+          hdrFrame.setPixel(i, j, dt);
+          imageRaster.setSample(i, j, 0, intensityTransform.toInt(dt, DMAX));
         }
       }
     }
@@ -116,9 +120,10 @@ public class FramedPlayer implements Runnable, ChangeListener {
     fpsUpdate = fpsControl.getValue();
     intensityTransform = new LinearIntensityTransform(clock, iMinControl.getValue(), iMaxControl.getValue());
     
+    WritableRaster imageRaster = image.getRaster();
     for (int i=0; i<w; i++) {
       for (int j=0; j<h; j++) {
-        image.setGray(i, j, intensityTransform.toInt(hdrFrame[i][j], DMAX));
+        imageRaster.setSample(i, j, 0, intensityTransform.toInt(hdrFrame.getPixel(i,j), DMAX));
       }
     }
   }

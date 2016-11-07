@@ -1,12 +1,13 @@
 package com.onsmith.unc.uhdr;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class PlayRawAquariumOutput {
+public class EncodeFramedAquariumOutput {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
-                           fps   = 30,          // Initial frame rate of player, in hertz
+                           fps   = 25,          // Initial frame rate of player, in hertz
                            iMin  = 0,           // Minimum for player intensity range
                            iMax  = 1000000;     // Maximum for player intensity range
   
@@ -14,11 +15,11 @@ public class PlayRawAquariumOutput {
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 0, 1000000);
+    bg = new ScaledHDRImage(bg, 1000000.0);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
+    sprite1 = new ScaledHDRImage(sprite1, 100.0, 10000.0);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},
@@ -770,7 +771,6 @@ public class PlayRawAquariumOutput {
         {104, 96},
         {104, 96},
         {104, 96},
-
       }),
     };
     
@@ -778,13 +778,29 @@ public class PlayRawAquariumOutput {
     HDRScene aquarium = new AquariumScene(bg, sprites);
     Source<PixelFire> aquariumStream = new SceneIntegrator(clock, aquarium);
     
-    // Player
-    FramelessPlayer player = new FramelessPlayer(
+    // Source<BufferedImage>
+    Source<IntFrame> imageStream = new UhdrFrameStream(
+      aquariumStream,
       aquarium.getWidth(),
-      aquarium.getHeight(),
-      clock, fps, iMin, iMax,
-      aquariumStream
+      aquarium.getHeight()
     );
-    player.start();
+    
+    // Sink<BufferedImage>
+    CanonicalMP4Writer imageWriter = new CanonicalMP4Writer(new File[] {
+      new File("out1.mp4"),
+      new File("out2.mp4"),
+      new File("out3.mp4")
+    });
+    
+    // Pipe source to sink
+    int numFrames = 40 * fps;
+    for (int i=0; i<numFrames; i++) {
+      imageWriter.send(imageStream.next());
+      if (i%10 == 9) {
+        System.out.println("Frame " + (i+1) + " of " + numFrames + ".");
+      }
+    }
+    imageWriter.close();
+    System.out.println("Finished.");
   }
 }

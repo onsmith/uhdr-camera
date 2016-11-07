@@ -1,6 +1,7 @@
 package com.onsmith.unc.uhdr;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 
 
 
@@ -9,7 +10,7 @@ public class PixelFireToBufferedImage implements Source<BufferedImage> {
   private final int clock; // Clock speed
   private PixelFire pf; // Stores the next pixel to display
   private int tNow; // Current time
-  private final GrayBufferedImage image;
+  private final BufferedImage image;
   private final Source<PixelFire> input; // Source of PixelFire objects
   private IntensityTransform intensityTransform; // Delegate intensity transformation to an IntensityTransform object
   private static final int Q = Integer.MAX_VALUE/2; // Factor used for dealing with integer overflow
@@ -22,7 +23,7 @@ public class PixelFireToBufferedImage implements Source<BufferedImage> {
   public PixelFireToBufferedImage(Source<PixelFire> input, int w, int h, int clock, int fps, double iMin, double iMax) {
     this.clock = clock;
     this.input = input;
-    this.image = new GrayBufferedImage(w, h, GrayBufferedImage.TYPE_INT_RGB);
+    this.image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     
     setFps(fps);
     setIntensityRange(iMin, iMax);
@@ -45,8 +46,9 @@ public class PixelFireToBufferedImage implements Source<BufferedImage> {
     // Prepare next frame
     //   Keep sending pixels to the image while (tShow < tNow)
     //   Check for possible overflow
+    WritableRaster raster = image.getRaster();
     while (pf.getTShow() < tNow && (pf.getTShow() > -Q || tNow < Q) || pf.getTShow() > Q && tNow < -Q) {
-      image.setGray(pf.getX(), pf.getY(), intensityTransform.toInt(pf.getDt(), pf.getD()));
+      raster.setSample(pf.getX(), pf.getY(), 0, intensityTransform.toInt(pf.getDt(), pf.getD()));
       pf = input.next();
     }
     
