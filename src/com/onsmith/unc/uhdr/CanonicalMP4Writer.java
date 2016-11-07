@@ -1,10 +1,7 @@
 package com.onsmith.unc.uhdr;
 
 import java.io.IOException;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
 import java.awt.image.WritableRaster;
 import java.io.File;
 
@@ -35,7 +32,7 @@ public class CanonicalMP4Writer implements Sink<IntFrame> {
 		for (int x=0; x<w; x++) {
 			for (int y=0; y<h; y++) {
 				for (int i=0; i<encoders.length; i++) {
-					rasters[i].setSample(x, y, 0, frame.getPixel(x, y) >> BITS_PER_STREAM*i);
+					rasters[i].setSample(x, y, 0, (frame.getPixel(x, y) >> BITS_PER_STREAM*i) & BITMASK);
 				}
 			}
 		}
@@ -53,12 +50,5 @@ public class CanonicalMP4Writer implements Sink<IntFrame> {
 		for (SequenceEncoder encoder : encoders) {
 			encoder.finish();
 		}
-	}
-	
-	public static BufferedImage wrapAsImage(int[] pixels, int w, int h) {
-		BufferedImage image = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
-		WritableRaster raster = (WritableRaster) image.getData();
-		raster.setPixels(0, 0, w, h, pixels);
-		return image;
 	}
 }

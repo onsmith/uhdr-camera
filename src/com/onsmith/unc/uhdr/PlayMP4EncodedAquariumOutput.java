@@ -1,11 +1,9 @@
 package com.onsmith.unc.uhdr;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
 import org.jcodec.api.JCodecException;
-import org.jcodec.api.awt.FrameGrab;
 
 public class PlayMP4EncodedAquariumOutput {
 	private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
@@ -21,9 +19,9 @@ public class PlayMP4EncodedAquariumOutput {
 			
 			// Source<IntFrame>
 			Source<IntFrame> framedStream = new MP4Reader(new File[] {
-				new File("out1.mp4"),
+				new File("out3.mp4"),
 				new File("out2.mp4"),
-				new File("out3.mp4")
+				new File("out1.mp4")
 			}, w, h);
 			
 			// Player
