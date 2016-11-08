@@ -20,7 +20,7 @@ import com.onsmith.unc.uhdr.Sprite;
 public class GenerateAquariumVideo {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
                            fps   = 25,          // Initial frame rate of player, in hertz
-                           Q     = 25,          // Q-factor to use (higher Q <=> lower quality)
+                           Q     = 40,          // Q-factor to use (higher Q <=> lower quality)
                            iMin  = 0,           // Minimum for player intensity range
                            iMax  = 1000000;     // Maximum for player intensity range
   

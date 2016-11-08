@@ -18,6 +18,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+
 public class FramedPlayer implements Runnable, ChangeListener {
   private static final int MIN_FPS = 1,   // Minimum allowed FPS
                            MAX_FPS = 120; // Maximum allowed FPS
@@ -123,7 +124,7 @@ public class FramedPlayer implements Runnable, ChangeListener {
     WritableRaster imageRaster = image.getRaster();
     for (int i=0; i<w; i++) {
       for (int j=0; j<h; j++) {
-        imageRaster.setSample(i, j, 0, intensityTransform.toInt(hdrFrame.getPixel(i,j), DMAX));
+        imageRaster.setSample(i, j, 0, intensityTransform.toInt(hdrFrame.getPixel(i,j), 8));
       }
     }
   }

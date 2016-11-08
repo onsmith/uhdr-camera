@@ -16,5 +16,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Aaron/Documents/apps/uhdr-camera/lib/jcodec-0.2.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Aaron/Documents/apps/uhdr-camera/lib/jcodec-javase-0.2.0.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -1,21 +1,24 @@
 package com.onsmith.unc.uhdr;
 
 import java.io.IOException;
+
+import com.onsmith.unc.uhdr.jcodec.AWTSequenceEncoder8Bit;
+
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.File;
 
-import org.jcodec.api.awt.SequenceEncoder;
 
 public class CanonicalMP4Writer implements Sink<IntFrame> {
-	private final SequenceEncoder[] encoders;
+	private final AWTSequenceEncoder8Bit[] encoders;
 	private static final int BITS_PER_STREAM = 8;
 	private static final int BITMASK = (0x1 << BITS_PER_STREAM) - 1;
 	
-	public CanonicalMP4Writer(File[] files) throws IOException {
-		encoders = new SequenceEncoder[files.length];
+	public CanonicalMP4Writer(File[] files, int fps, int q) throws IOException {
+		encoders = new AWTSequenceEncoder8Bit[files.length];
 		for (int i=0; i<files.length; i++) {
-			encoders[i] = new SequenceEncoder(files[i]);
+			encoders[i] = AWTSequenceEncoder8Bit.createSequenceEncoder8Bit(files[i], fps, q);
+			encoders[i].getEncoder().setKeyInterval(fps); // 1 key frame per second
 		}
 	}
 	
@@ -47,7 +50,7 @@ public class CanonicalMP4Writer implements Sink<IntFrame> {
 	}
 	
 	public void close() throws IOException {
-		for (SequenceEncoder encoder : encoders) {
+		for (AWTSequenceEncoder8Bit encoder : encoders) {
 			encoder.finish();
 		}
 	}

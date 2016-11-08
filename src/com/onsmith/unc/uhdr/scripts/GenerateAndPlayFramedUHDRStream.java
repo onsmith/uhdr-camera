@@ -1,6 +1,5 @@
 package com.onsmith.unc.uhdr.scripts;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -17,6 +16,7 @@ import com.onsmith.unc.uhdr.SceneIntegrator;
 import com.onsmith.unc.uhdr.Source;
 import com.onsmith.unc.uhdr.Sprite;
 import com.onsmith.unc.uhdr.UhdrFrameStream;
+
 
 public class GenerateAndPlayFramedUHDRStream {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz

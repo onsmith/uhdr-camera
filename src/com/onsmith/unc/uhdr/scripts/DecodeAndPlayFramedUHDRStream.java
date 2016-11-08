@@ -12,21 +12,20 @@ import com.onsmith.unc.uhdr.Source;
 
 public class DecodeAndPlayFramedUHDRStream {
 	private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
-	                         fps   = 30,          // Initial frame rate of player, in hertz
+	                         fps   = 120,         // Initial frame rate of player, in hertz
 	                         iMin  = 0,           // Minimum for player intensity range
 	                         iMax  = 1000000;     // Maximum for player intensity range
 	
 	
 	public static void main(String[] args) throws IOException {
 		try {
-			int w = 717;
+			int w = 716;
 			int h = 500;
 			
 			// Source<IntFrame>
 			Source<IntFrame> framedStream = new MP4Reader(new File[] {
-				new File("out3.mp4"),
-				new File("out2.mp4"),
-				new File("out1.mp4")
+				new File("out/out1.mp4"),
+				new File("out/out2.mp4")
 			}, w, h);
 			
 			// Player

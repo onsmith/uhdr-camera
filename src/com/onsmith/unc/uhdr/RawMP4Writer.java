@@ -2,16 +2,17 @@ package com.onsmith.unc.uhdr;
 
 import java.io.IOException;
 
-import com.onsmith.unc.uhdr.jcodec.SequenceEncoder;
+import com.onsmith.unc.uhdr.jcodec.AWTSequenceEncoder8Bit;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+
 public class RawMP4Writer implements Sink<BufferedImage> {
-	private final SequenceEncoder encoder;
+	private final AWTSequenceEncoder8Bit encoder;
 	
-	public RawMP4Writer(File file, int fps, int Q) throws IOException {
-		encoder = new SequenceEncoder(file, fps, Q);
+	public RawMP4Writer(File file, int fps, int q) throws IOException {
+		encoder = AWTSequenceEncoder8Bit.createSequenceEncoder8Bit(file, fps, q);
 	}
 	
 	@Override
