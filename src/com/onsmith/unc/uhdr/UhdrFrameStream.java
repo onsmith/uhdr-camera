@@ -31,6 +31,12 @@ public class UhdrFrameStream implements Source<IntFrame> {
 	}
 	
 	
+	@Override
+	public IntFrame current() {
+		return frame;
+	}
+	
+	
 	private static int canonicalizeIntensity(int d, int dt) {
 		return (MAXDT & dt) << (MAXD - d);
 	}

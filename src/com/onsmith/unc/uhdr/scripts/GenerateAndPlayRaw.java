@@ -1,10 +1,21 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.scripts;
 
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class PlayRawAquariumOutput {
+import com.onsmith.unc.uhdr.AquariumScene;
+import com.onsmith.unc.uhdr.BufferedHDRImage;
+import com.onsmith.unc.uhdr.FramelessPlayer;
+import com.onsmith.unc.uhdr.HDRImage;
+import com.onsmith.unc.uhdr.HDRScene;
+import com.onsmith.unc.uhdr.PixelFire;
+import com.onsmith.unc.uhdr.ScaledHDRImage;
+import com.onsmith.unc.uhdr.SceneIntegrator;
+import com.onsmith.unc.uhdr.Source;
+import com.onsmith.unc.uhdr.Sprite;
+
+public class GenerateAndPlayRaw {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
                            fps   = 30,          // Initial frame rate of player, in hertz
                            iMin  = 0,           // Minimum for player intensity range

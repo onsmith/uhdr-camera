@@ -15,6 +15,7 @@ public class MP4Reader implements Source<IntFrame> {
 	private static final int BITMASK = (0x1 << BITS_PER_STREAM) - 1;
 	private final FrameGrab[] movies;
 	private final int w, h;
+	private IntFrame current;
 	
 	public MP4Reader(File[] files, int w, int h) throws FileNotFoundException, IOException, JCodecException {
 		this.w = w;
@@ -39,20 +40,26 @@ public class MP4Reader implements Source<IntFrame> {
 	@Override
 	public IntFrame next() {
 		try {
-			IntFrame frame = new IntFrame(w, h);
+			current = new IntFrame(w, h);
 			for (int i=0; i<movies.length; i++) {
 				WritableRaster raster = movies[i].getFrame().getRaster();
 				for (int x=0; x<w; x++) {
 					for (int y=0; y<h; y++) {
-						frame.setPixel(x, y, (frame.getPixel(x, y) << BITS_PER_STREAM) | (raster.getSample(x, y, 0) & BITMASK));
+						current.setPixel(x, y, (current.getPixel(x, y) << BITS_PER_STREAM) | (raster.getSample(x, y, 0) & BITMASK));
 					}
 				}
 			}
-			return frame;
+			return current;
 		} catch (IOException e) {
 			System.err.println("Error: could not grab frame from MP4 file.");
 			e.printStackTrace();
+			current = null;
 		}
 		return null;
+	}
+	
+	@Override
+	public IntFrame current() {
+		return current;
 	}
 }

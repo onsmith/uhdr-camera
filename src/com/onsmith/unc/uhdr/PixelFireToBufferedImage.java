@@ -58,6 +58,13 @@ public class PixelFireToBufferedImage implements Source<BufferedImage> {
   
   
   
+  @Override
+  public BufferedImage current() {
+    return image;
+  }
+  
+  
+  
   /**
    * Setter for fps field.
    */

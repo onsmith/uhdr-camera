@@ -1,23 +1,25 @@
 package com.onsmith.unc.uhdr;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.DataOutputStream;
+import java.io.IOException;
+
+import com.onsmith.unc.uhdr.util.BitOutputStream;
+
 
 public class PixelFireWriter implements Sink<PixelFire> {
-	private final DataOutputStream stream;
+	private final BitOutputStream writer;
 	
 	public PixelFireWriter(OutputStream stream) {
-		this.stream = new DataOutputStream(stream);
+		this.writer = new BitOutputStream(stream);
 	}
 	
 	@Override
 	public void send(PixelFire value) {
 		try {
-			stream.writeInt(value.getX());
-			stream.writeInt(value.getY());
-			stream.writeInt(value.getD());
-			stream.writeInt(value.getDt());
+			writer.write(value.getX(), 11);
+			writer.write(value.getY(), 11);
+			writer.write(value.getD(),  4);
+			writer.write(value.getDt(), 8);
 		} catch (IOException e) {
 			System.err.println("Error writing PixelFire object to OutputStream.");
 			e.printStackTrace();
@@ -25,6 +27,6 @@ public class PixelFireWriter implements Sink<PixelFire> {
 	}
 	
 	public void close() throws IOException {
-		stream.close();
+		writer.close();
 	}
 }

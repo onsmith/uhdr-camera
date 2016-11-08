@@ -15,6 +15,8 @@ public class SceneIntegrator implements Source<PixelFire> {
 	private final double maxDtInSecs;
 	private final double timestep;
 	
+	private PixelFire current;
+	
 	public SceneIntegrator(int clock, HDRScene scene) {
 		this.clock = clock;
 		this.scene = scene;
@@ -33,13 +35,22 @@ public class SceneIntegrator implements Source<PixelFire> {
 		}
 	}
 	
+	public double getCurrentTime() {
+		return queue.peek().t;
+	}
+	
 	@Override
 	public PixelFire next() {
 		EmulatorPixel p = queue.remove();
-		PixelFire pf = new PixelFire(p.x, p.y, p.dt, p.d, p.ticks);
+		current = new PixelFire(p.x, p.y, p.dt, p.d, p.ticks);
 		p.fire();
 		queue.add(p);
-		return pf;
+		return current;
+	}
+	
+	@Override
+	public PixelFire current() {
+		return current;
 	}
 	
 	private int nextD(int x, int y, double ti) {
@@ -109,5 +120,5 @@ public class SceneIntegrator implements Source<PixelFire> {
 		public int compareTo(EmulatorPixel o) {
 			return Double.compare(t, o.t);
 		}
-  }
+	}
 }

@@ -1,25 +1,31 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.scripts;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class EncodeRawAquariumOutput {
-  private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
-                           fps   = 25,          // Initial frame rate of player, in hertz
-                           iMin  = 0,           // Minimum for player intensity range
-                           iMax  = 1000000;     // Maximum for player intensity range
+import com.onsmith.unc.uhdr.AquariumScene;
+import com.onsmith.unc.uhdr.BufferedHDRImage;
+import com.onsmith.unc.uhdr.HDRImage;
+import com.onsmith.unc.uhdr.HDRScene;
+import com.onsmith.unc.uhdr.PixelFireWriter;
+import com.onsmith.unc.uhdr.ScaledHDRImage;
+import com.onsmith.unc.uhdr.SceneIntegrator;
+import com.onsmith.unc.uhdr.Sprite;
+
+public class GenerateAndStoreRaw {
+  private static final int clock = (0x1 << 10); // Camera clock speed, in hertz
   
   
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 1000000.0);
+    bg = new ScaledHDRImage(bg, 0, 1000000);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 100.0, 10000.0);
+    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},
@@ -776,24 +782,18 @@ public class EncodeRawAquariumOutput {
     
     // Source<PixelFire>
     HDRScene aquarium = new AquariumScene(bg, sprites);
-    Source<PixelFire> aquariumStream = new SceneIntegrator(clock, aquarium);
-    
-    // Source<BufferedImage>
-    Source<BufferedImage> imageStream = new PixelFireToBufferedImage(
-        aquariumStream,
-        aquarium.getWidth(),
-        aquarium.getHeight(),
-        clock, fps, iMin, iMax);
+    SceneIntegrator aquariumStream = new SceneIntegrator(clock, aquarium);
     
     // Sink<BufferedImage>
-    RawMP4Writer imageWriter = new RawMP4Writer(new File("output.mp4"));
+    PixelFireWriter imageWriter = new PixelFireWriter(new FileOutputStream(new File("out/raw.data")));
     
     // Pipe source to sink
-    int numFrames = 1 * fps;
-    for (int i=0; i<numFrames; i++) {
-      imageWriter.send(imageStream.next());
-      if (i%10 == 0) {
-        System.out.println("Frame " + i + " of " + numFrames + ".");
+    int duration      = 10,
+        timeLastPrint = 0;
+    while (aquariumStream.getCurrentTime() < duration) {
+      imageWriter.send(aquariumStream.next());
+      if (timeLastPrint < aquariumStream.getCurrentTime()) {
+        System.out.println("Second " + (++timeLastPrint) + " of " + duration + ".");
       }
     }
     imageWriter.close();

@@ -1,13 +1,25 @@
-package com.onsmith.unc.uhdr;
+package com.onsmith.unc.uhdr.scripts;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class PlayFramedAquariumOutput {
+import com.onsmith.unc.uhdr.AquariumScene;
+import com.onsmith.unc.uhdr.BufferedHDRImage;
+import com.onsmith.unc.uhdr.CanonicalMP4Writer;
+import com.onsmith.unc.uhdr.HDRImage;
+import com.onsmith.unc.uhdr.HDRScene;
+import com.onsmith.unc.uhdr.IntFrame;
+import com.onsmith.unc.uhdr.PixelFire;
+import com.onsmith.unc.uhdr.ScaledHDRImage;
+import com.onsmith.unc.uhdr.SceneIntegrator;
+import com.onsmith.unc.uhdr.Source;
+import com.onsmith.unc.uhdr.Sprite;
+import com.onsmith.unc.uhdr.UhdrFrameStream;
+
+public class GenerateAndEncodeFramedUHDRStream {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
-                           fps   = 30,          // Initial frame rate of player, in hertz
+                           fps   = 25,          // Initial frame rate of player, in hertz
                            iMin  = 0,           // Minimum for player intensity range
                            iMax  = 1000000;     // Maximum for player intensity range
   
@@ -15,11 +27,11 @@ public class PlayFramedAquariumOutput {
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 0, 1000000);
+    bg = new ScaledHDRImage(bg, 1000000.0);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
+    sprite1 = new ScaledHDRImage(sprite1, 100.0, 10000.0);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},
@@ -771,7 +783,6 @@ public class PlayFramedAquariumOutput {
         {104, 96},
         {104, 96},
         {104, 96},
-
       }),
     };
     
@@ -779,20 +790,29 @@ public class PlayFramedAquariumOutput {
     HDRScene aquarium = new AquariumScene(bg, sprites);
     Source<PixelFire> aquariumStream = new SceneIntegrator(clock, aquarium);
     
-    // Source<IntFrame>
-    Source<IntFrame> framedStream = new UhdrFrameStream(
+    // Source<BufferedImage>
+    Source<IntFrame> imageStream = new UhdrFrameStream(
       aquariumStream,
       aquarium.getWidth(),
-      aquarium.getWidth()
+      aquarium.getHeight()
     );
     
-    // Player
-    FramedPlayer player = new FramedPlayer(
-      aquarium.getWidth(),
-      aquarium.getHeight(),
-      clock, fps, iMin, iMax,
-      framedStream
-    );
-    player.start();
+    // Sink<BufferedImage>
+    CanonicalMP4Writer imageWriter = new CanonicalMP4Writer(new File[] {
+      new File("out1.mp4"),
+      new File("out2.mp4"),
+      new File("out3.mp4")
+    });
+    
+    // Pipe source to sink
+    int numFrames = 40 * fps;
+    for (int i=0; i<numFrames; i++) {
+      imageWriter.send(imageStream.next());
+      if (i%10 == 9) {
+        System.out.println("Frame " + (i+1) + " of " + numFrames + ".");
+      }
+    }
+    imageWriter.close();
+    System.out.println("Finished.");
   }
 }

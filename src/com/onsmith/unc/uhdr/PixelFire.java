@@ -1,6 +1,6 @@
 package com.onsmith.unc.uhdr;
 
-public class PixelFire implements Comparable<PixelFire> {
+public class PixelFire {
   private final int x, y,  // Spatial information
                     dt, d, // Intensity information
                     t;     // Clock time when pixel is fired
@@ -46,11 +46,5 @@ public class PixelFire implements Comparable<PixelFire> {
   
   public int getTFire() {
     return t;
-  }
-  
-  
-  @Override
-  public int compareTo(PixelFire o) {
-    return Double.compare(t, o.t);
   }
 }
