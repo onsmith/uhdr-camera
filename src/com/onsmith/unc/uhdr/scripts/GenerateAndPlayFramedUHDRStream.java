@@ -6,7 +6,7 @@ import javax.imageio.ImageIO;
 
 import com.onsmith.unc.uhdr.AquariumScene;
 import com.onsmith.unc.uhdr.BufferedHDRImage;
-import com.onsmith.unc.uhdr.FramedPlayer;
+import com.onsmith.unc.uhdr.IntFramePlayer;
 import com.onsmith.unc.uhdr.HDRImage;
 import com.onsmith.unc.uhdr.HDRScene;
 import com.onsmith.unc.uhdr.IntFrame;
@@ -32,7 +32,7 @@ public class GenerateAndPlayFramedUHDRStream {
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
+    sprite1 = new ScaledHDRImage(sprite1, 100, 10000);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},
@@ -784,7 +784,6 @@ public class GenerateAndPlayFramedUHDRStream {
         {104, 96},
         {104, 96},
         {104, 96},
-
       }),
     };
     
@@ -800,7 +799,7 @@ public class GenerateAndPlayFramedUHDRStream {
     );
     
     // Player
-    FramedPlayer player = new FramedPlayer(
+    IntFramePlayer player = new IntFramePlayer(
       aquarium.getWidth(),
       aquarium.getHeight(),
       clock, fps, iMin, iMax,

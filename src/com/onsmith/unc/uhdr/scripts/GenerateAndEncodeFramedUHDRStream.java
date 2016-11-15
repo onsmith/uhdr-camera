@@ -20,17 +20,17 @@ import com.onsmith.unc.uhdr.UhdrFrameStream;
 public class GenerateAndEncodeFramedUHDRStream {
   private static final int clock = (0x1 << 10), // Camera clock speed, in hertz
                            fps   = 1023,        // Frame rate for encoded video
-                           q     = 25;          // Q-factor for encoded video
+                           q     = 10;          // Q-factor for encoded video
   
   
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 1000000.0);
+    bg = new ScaledHDRImage(bg, 1000000);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 100.0, 10000.0);
+    sprite1 = new ScaledHDRImage(sprite1, 100, 10000);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},
@@ -801,7 +801,7 @@ public class GenerateAndEncodeFramedUHDRStream {
       new File("out/out1.mp4"),
       new File("out/out2.mp4"),
       new File("out/out3.mp4")
-    }, fps, q);
+    }, 25, q);
     
     // Pipe source to sink
     int numFrames = (int) (1 * fps);

@@ -21,11 +21,11 @@ public class GenerateAndStoreRaw {
   public static void main(String[] args) throws IOException {
     // Background Image
     HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
-    bg = new ScaledHDRImage(bg, 0, 1000000);
+    bg = new ScaledHDRImage(bg, 1000000);
     
     // Sprites
     HDRImage sprite1 = new BufferedHDRImage(ImageIO.read(new File("img/sprite1.jpg")));
-    sprite1 = new ScaledHDRImage(sprite1, 800000, 1000000);
+    sprite1 = new ScaledHDRImage(sprite1, 100, 10000);
     Sprite[] sprites = new Sprite[] {
       new Sprite(sprite1, new int[][] {
         {76, 84},

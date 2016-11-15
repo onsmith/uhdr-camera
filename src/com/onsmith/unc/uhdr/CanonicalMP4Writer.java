@@ -34,8 +34,9 @@ public class CanonicalMP4Writer implements Sink<IntFrame> {
 		}
 		for (int x=0; x<w; x++) {
 			for (int y=0; y<h; y++) {
+			  final int pixel = frame.getPixel(x, y);
 				for (int i=0; i<encoders.length; i++) {
-					rasters[i].setSample(x, y, 0, (frame.getPixel(x, y) >> BITS_PER_STREAM*i) & BITMASK);
+					rasters[i].setSample(x, y, 0, (pixel >>> (BITS_PER_STREAM*i)) & BITMASK);
 				}
 			}
 		}

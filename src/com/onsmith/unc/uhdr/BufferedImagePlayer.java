@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
 import java.util.Date;
 import java.util.Timer;
 
@@ -18,52 +17,33 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class FramelessPlayer implements Runnable, ChangeListener {
+
+public class BufferedImagePlayer implements Runnable, ChangeListener {
   private static final int MIN_FPS = 1,   // Minimum allowed FPS
                            MAX_FPS = 120; // Maximum allowed FPS
   
-  private final double iMin, // Minimum allowed intensity for intensity range
-                       iMax; // Maximum allowed intensity for intensity range
-  
   private int fps;       // Current fps value
   private int fpsUpdate; // When the UI updates the frame rate, this property is changed
-
-  private final int clock; // Clock speed
   
-  private PixelFire pf; // Stores the next pixel to display
-  
-  private int tNow; // Current time
-  
-  private final BufferedImage image;
+  private final BufferedImage image; // Image being displayed
   
   private JFrame  frame;       // JFrame to house the player
   private JLabel  iconLabel;   // Label to house the image
-  private JSlider fpsControl,  // Slider that controls the player fps
-                  iMinControl, // Slider that controls the largest intensity that should map to 0
-                  iMaxControl; // Slider that controls the smallest intensity that should map to 255
+  private JSlider fpsControl;  // Slider that controls the player fps
   
   private Timer timer; // Timer to periodically call run()
   
-  private final Source<PixelFire> input; // Source of PixelFire objects to play
-  
-  private IntensityTransform intensityTransform; // Delegate intensity transformation to an IntensityTransform object
-  
-  private static final int Q = Integer.MAX_VALUE/2; // Factor used for dealing with integer overflow
+  private final Source<BufferedImage> input; // Source of frames to play
   
   
   
   /**
    * Constructor
    */
-  public FramelessPlayer(int w, int h, int clock, int fps, double iMin, double iMax, Source<PixelFire> input) {
-    this.clock = clock;
+  public BufferedImagePlayer(Source<BufferedImage> input, int fps) {
     this.fps   = fps;
-    this.iMin  = iMin;
-    this.iMax  = iMax;
     this.input = input;
-    
-    intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
-    image              = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
+    this.image = input.next();
   }
   
   
@@ -81,19 +61,11 @@ public class FramelessPlayer implements Runnable, ChangeListener {
       return;
     }
     
-    // Advance current time
-    tNow += ticksPerFrame();
+    // Update frame
+    image.setData(input.current().getData());
+    input.next();
     
-    // Prepare next frame
-    //   Keep sending pixels to the image while (tShow < tNow)
-    //   Check for possible overflow
-    WritableRaster raster = image.getRaster();
-    while (pf.getTShow() < tNow && (pf.getTShow() > -Q || tNow < Q) || pf.getTShow() > Q && tNow < -Q) {
-      raster.setSample(pf.getX(), pf.getY(), 0, intensityTransform.toInt(pf.getDt(), pf.getD()));
-      pf = input.next();
-    }
-    
-    // Show prepared frame
+    // Show frame
     frame.repaint();
   }
   
@@ -106,7 +78,6 @@ public class FramelessPlayer implements Runnable, ChangeListener {
   @Override
   public void stateChanged(ChangeEvent e) {
     fpsUpdate = fpsControl.getValue();
-    intensityTransform = new LinearIntensityTransform(clock, iMinControl.getValue(), iMaxControl.getValue());
   }
   
   
@@ -116,9 +87,6 @@ public class FramelessPlayer implements Runnable, ChangeListener {
   public void start() {
     // Show the player window
     makePlayerWindow();
-    
-    // Priming read
-    pf = input.next();
     
     // Begin running the timer
     fpsUpdate = fps;
@@ -159,48 +127,16 @@ public class FramelessPlayer implements Runnable, ChangeListener {
     fpsControl.setAlignmentX(Component.CENTER_ALIGNMENT);
     fpsControl.addChangeListener(this);
     
-    // Create and set JLabel to hold the min intensity slider
-    iMinControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMin);
-    iMinControl.setMajorTickSpacing((int) (iMax - iMin)/5);
-    iMinControl.setMinorTickSpacing((int) (iMax - iMin)/50);
-    iMinControl.setPaintTicks(true);
-    iMinControl.setPaintLabels(true);
-    iMinControl.setBorder(new EmptyBorder(0, 20, 20, 20)); // top, left, bottom, right
-    iMinControl.setFont(new Font("Serif", Font.ITALIC, 30));
-    iMinControl.setAlignmentX(Component.CENTER_ALIGNMENT);
-    iMinControl.addChangeListener(this);
-    
-    // Create and set JLabel to hold the max intensity slider
-    iMaxControl = new JSlider(JSlider.HORIZONTAL, (int) iMin, (int) iMax, (int) iMax);
-    iMaxControl.setMajorTickSpacing((int) (iMax - iMin)/5);
-    iMaxControl.setMinorTickSpacing((int) (iMax - iMin)/50);
-    iMaxControl.setPaintTicks(true);
-    iMaxControl.setPaintLabels(true);
-    iMaxControl.setBorder(new EmptyBorder(0, 20, 20, 20)); // top, left, bottom, right
-    iMaxControl.setFont(new Font("Serif", Font.ITALIC, 30));
-    iMaxControl.setAlignmentX(Component.CENTER_ALIGNMENT);
-    iMaxControl.addChangeListener(this);
-    
     // Create, configure, and show JFrame
-    frame = new JFrame("UHDR Player");
+    frame = new JFrame("BufferedImage Player");
     frame.setMinimumSize(new Dimension(800, 0)); // w, h
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
     frame.getContentPane().add(iconLabel);
     frame.getContentPane().add(fpsControl);
-    frame.getContentPane().add(iMinControl);
-    frame.getContentPane().add(iMaxControl);
     frame.pack();
     frame.setLocationRelativeTo(null); // Passing a null component causes the window to be placed in the center of the screen
     frame.setVisible(true);
-  }
-  
-  
-  /**
-   * Calculates the number of ticks that should elapse between frames
-   */
-  private int ticksPerFrame() {
-    return clock/fps;
   }
   
   

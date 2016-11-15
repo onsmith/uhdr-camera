@@ -10,14 +10,14 @@ import org.jcodec.api.JCodecException;
 import org.jcodec.api.awt.AWTFrameGrab8Bit;
 import org.jcodec.common.io.NIOUtils;
 
-public class MP4Reader implements Source<IntFrame> {
+public class CanonicalMP4Reader implements Source<IntFrame> {
 	private static final int BITS_PER_STREAM = 8;
 	private static final int BITMASK = (0x1 << BITS_PER_STREAM) - 1;
 	private final AWTFrameGrab8Bit[] movies;
 	private final int w, h;
 	private IntFrame current;
 	
-	public MP4Reader(File[] files, int w, int h) throws FileNotFoundException, IOException, JCodecException {
+	public CanonicalMP4Reader(File[] files, int w, int h) throws FileNotFoundException, IOException, JCodecException {
 		this.w = w;
 		this.h = h;
 		movies = new AWTFrameGrab8Bit[files.length];
@@ -26,7 +26,7 @@ public class MP4Reader implements Source<IntFrame> {
 		}
 	}
 	
-	public MP4Reader(File[] files) throws FileNotFoundException, IOException, JCodecException {
+	public CanonicalMP4Reader(File[] files) throws FileNotFoundException, IOException, JCodecException {
 		BufferedImage frame = AWTFrameGrab8Bit.getFrame(files[0], 0);
 		this.w = frame.getWidth();
 		this.h = frame.getHeight();

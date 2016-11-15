@@ -18,8 +18,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-
-public class FramedPlayer implements Runnable, ChangeListener {
+public class PixelFirePlayer implements Runnable, ChangeListener {
   private static final int MIN_FPS = 1,   // Minimum allowed FPS
                            MAX_FPS = 120; // Maximum allowed FPS
   
@@ -31,13 +30,11 @@ public class FramedPlayer implements Runnable, ChangeListener {
 
   private final int clock; // Clock speed
   
+  private PixelFire pf; // Stores the next pixel to display
+  
   private int tNow; // Current time
   
-  private final int w, h; // Width and height
-  private final static int DMAX = 0xF;
-  
-  private final IntFrame      hdrFrame; // HDR version of the current frame
-  private final BufferedImage image;    // Current frame as displayed on screen
+  private final BufferedImage image;
   
   private JFrame  frame;       // JFrame to house the player
   private JLabel  iconLabel;   // Label to house the image
@@ -47,27 +44,26 @@ public class FramedPlayer implements Runnable, ChangeListener {
   
   private Timer timer; // Timer to periodically call run()
   
-  private final Source<IntFrame> input; // Source of frames to play
+  private final Source<PixelFire> input; // Source of PixelFire objects to play
   
   private IntensityTransform intensityTransform; // Delegate intensity transformation to an IntensityTransform object
+  
+  private static final int Q = Integer.MAX_VALUE/2; // Factor used for dealing with integer overflow
   
   
   
   /**
    * Constructor
    */
-  public FramedPlayer(int w, int h, int clock, int fps, double iMin, double iMax, Source<IntFrame> input) {
+  public PixelFirePlayer(int w, int h, int clock, int fps, double iMin, double iMax, Source<PixelFire> input) {
     this.clock = clock;
     this.fps   = fps;
     this.iMin  = iMin;
     this.iMax  = iMax;
     this.input = input;
-    this.w     = w;
-    this.h     = h;
     
-    hdrFrame           = new IntFrame(w, h);
-    image              = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
     intensityTransform = new LinearIntensityTransform(clock, iMin, iMax);
+    image              = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
   }
   
   
@@ -88,22 +84,13 @@ public class FramedPlayer implements Runnable, ChangeListener {
     // Advance current time
     tNow += ticksPerFrame();
     
-    // Skip through hdr frames
-    IntFrame currentHdrFrame = input.next();
-    for (int i=1; i<ticksPerFrame(); i++) {
-      currentHdrFrame = input.next();
-    }
-    
-    // Update changed pixels
-    WritableRaster imageRaster = image.getRaster();
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        if (currentHdrFrame.getPixel(i,j) != hdrFrame.getPixel(i,j)) {
-          int dt = currentHdrFrame.getPixel(i,j);
-          hdrFrame.setPixel(i, j, dt);
-          imageRaster.setSample(i, j, 0, intensityTransform.toInt(dt, DMAX));
-        }
-      }
+    // Prepare next frame
+    //   Keep sending pixels to the image while (tShow < tNow)
+    //   Check for possible overflow
+    WritableRaster raster = image.getRaster();
+    while (pf.getTShow() < tNow && (pf.getTShow() > -Q || tNow < Q) || pf.getTShow() > Q && tNow < -Q) {
+      raster.setSample(pf.getX(), pf.getY(), 0, intensityTransform.toInt(pf.getDt(), pf.getD()));
+      pf = input.next();
     }
     
     // Show prepared frame
@@ -120,13 +107,6 @@ public class FramedPlayer implements Runnable, ChangeListener {
   public void stateChanged(ChangeEvent e) {
     fpsUpdate = fpsControl.getValue();
     intensityTransform = new LinearIntensityTransform(clock, iMinControl.getValue(), iMaxControl.getValue());
-    
-    WritableRaster imageRaster = image.getRaster();
-    for (int i=0; i<w; i++) {
-      for (int j=0; j<h; j++) {
-        imageRaster.setSample(i, j, 0, intensityTransform.toInt(hdrFrame.getPixel(i,j), 8));
-      }
-    }
   }
   
   
@@ -136,6 +116,9 @@ public class FramedPlayer implements Runnable, ChangeListener {
   public void start() {
     // Show the player window
     makePlayerWindow();
+    
+    // Priming read
+    pf = input.next();
     
     // Begin running the timer
     fpsUpdate = fps;

@@ -5,9 +5,9 @@ import java.io.IOException;
 
 import org.jcodec.api.JCodecException;
 
-import com.onsmith.unc.uhdr.FramedPlayer;
+import com.onsmith.unc.uhdr.IntFramePlayer;
 import com.onsmith.unc.uhdr.IntFrame;
-import com.onsmith.unc.uhdr.MP4Reader;
+import com.onsmith.unc.uhdr.CanonicalMP4Reader;
 import com.onsmith.unc.uhdr.Source;
 
 public class DecodeAndPlayFramedUHDRStream {
@@ -23,13 +23,14 @@ public class DecodeAndPlayFramedUHDRStream {
 			int h = 500;
 			
 			// Source<IntFrame>
-			Source<IntFrame> framedStream = new MP4Reader(new File[] {
+			Source<IntFrame> framedStream = new CanonicalMP4Reader(new File[] {
+				new File("out/out3.mp4"),
+				new File("out/out2.mp4"),
 				new File("out/out1.mp4"),
-				new File("out/out2.mp4")
 			}, w, h);
 			
 			// Player
-			FramedPlayer player = new FramedPlayer(
+			IntFramePlayer player = new IntFramePlayer(
 				w, h,
 				clock, fps, iMin, iMax,
 				framedStream

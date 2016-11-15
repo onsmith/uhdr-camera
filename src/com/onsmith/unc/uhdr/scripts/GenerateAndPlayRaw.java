@@ -6,7 +6,7 @@ import javax.imageio.ImageIO;
 
 import com.onsmith.unc.uhdr.AquariumScene;
 import com.onsmith.unc.uhdr.BufferedHDRImage;
-import com.onsmith.unc.uhdr.FramelessPlayer;
+import com.onsmith.unc.uhdr.PixelFirePlayer;
 import com.onsmith.unc.uhdr.HDRImage;
 import com.onsmith.unc.uhdr.HDRScene;
 import com.onsmith.unc.uhdr.PixelFire;
@@ -790,7 +790,7 @@ public class GenerateAndPlayRaw {
     Source<PixelFire> aquariumStream = new SceneIntegrator(clock, aquarium);
     
     // Player
-    FramelessPlayer player = new FramelessPlayer(
+    PixelFirePlayer player = new PixelFirePlayer(
       aquarium.getWidth(),
       aquarium.getHeight(),
       clock, fps, iMin, iMax,

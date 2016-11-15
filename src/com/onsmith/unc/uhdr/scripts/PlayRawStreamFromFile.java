@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-import com.onsmith.unc.uhdr.FramelessPlayer;
+import com.onsmith.unc.uhdr.PixelFirePlayer;
 import com.onsmith.unc.uhdr.PixelFire;
 import com.onsmith.unc.uhdr.PixelFireReader;
 import com.onsmith.unc.uhdr.Source;
@@ -25,7 +25,7 @@ public class PlayRawStreamFromFile {
     Source<PixelFire> rawStreamFromDisk = new PixelFireReader(new FileInputStream(new File("out/raw.data")), w, h);
     
     // Player
-    FramelessPlayer player = new FramelessPlayer(
+    PixelFirePlayer player = new PixelFirePlayer(
       w, h,
       clock, fps, iMin, iMax,
       rawStreamFromDisk
