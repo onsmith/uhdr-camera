@@ -18,11 +18,11 @@ public class PlayRawStreamFromFile {
   
   public static void main(String[] args) throws IOException {
     // Width, height
-    int w = 717,
-        h = 500;
+    int w = 1500,//717,
+        h = 1046;//500;
     
     // Source<PixelFire>
-    Source<PixelFire> rawStreamFromDisk = new PixelFireReader(new FileInputStream(new File("out/raw.data")), w, h);
+    Source<PixelFire> rawStreamFromDisk = new PixelFireReader(new FileInputStream(new File("out/rawHD.data")), w, h);
     
     // Player
     PixelFirePlayer player = new PixelFirePlayer(

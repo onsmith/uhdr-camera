@@ -18,7 +18,7 @@ public class CanonicalMP4Writer implements Sink<IntFrame> {
 		encoders = new AWTSequenceEncoder8Bit[files.length];
 		for (int i=0; i<files.length; i++) {
 			encoders[i] = AWTSequenceEncoder8Bit.createSequenceEncoder8Bit(files[i], fps, q);
-			encoders[i].getEncoder().setKeyInterval(fps); // 1 key frame per second
+			encoders[i].getEncoder().setKeyInterval(1023); // 1 key frame per second
 		}
 	}
 	

@@ -20,7 +20,7 @@ public class GenerateAndStoreRaw {
   
   public static void main(String[] args) throws IOException {
     // Background Image
-    HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.jpg")));
+    HDRImage bg = new BufferedHDRImage(ImageIO.read(new File("img/bg.raw.jpg")));
     bg = new ScaledHDRImage(bg, 1000000);
     
     // Sprites
@@ -785,7 +785,7 @@ public class GenerateAndStoreRaw {
     SceneIntegrator aquariumStream = new SceneIntegrator(clock, aquarium);
     
     // Sink<BufferedImage>
-    PixelFireWriter imageWriter = new PixelFireWriter(new FileOutputStream(new File("out/raw.data")));
+    PixelFireWriter imageWriter = new PixelFireWriter(new FileOutputStream(new File("out/rawHD.data")));
     
     // Pipe source to sink
     int duration      = 10,

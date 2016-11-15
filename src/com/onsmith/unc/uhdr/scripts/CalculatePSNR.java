@@ -36,13 +36,13 @@ public class CalculatePSNR {
     for (int i=0; i<1023; i++) {
       IntFrame rawFrame = rawStream.next(),
                mp4Frame = mp4Stream.next();
-      long mse = 0;
+      double mse = 0;
       for (int x=0; x<w; x++) {
         for (int y=0; y<h; y++) {
-          int diff = rawFrame.getPixel(x,y) - (mp4Frame.getPixel(x,y) >>> 1);
-          mse += diff*diff;
-          //if (diff != 0) {
-            //System.out.println(diff);
+          double err = toIntensity(rawFrame.getPixel(x,y), 15) - toIntensity(mp4Frame.getPixel(x,y) >>> 1, 15);
+          mse += err*err;
+          //if (err != 0) {
+            //System.out.println(err);
             //System.out.printf("%8s %8s\n", Integer.toBinaryString(rawFrame.getPixel(x,y)), Integer.toBinaryString(mp4Frame.getPixel(x,y) >>> 1));
           //}
           //System.out.println(rawFrame.getPixel(x,y) - mp4Frame.getPixel(x,y));
@@ -50,7 +50,13 @@ public class CalculatePSNR {
         }
       }
       mse /= w*h;
-      System.out.println(mse);
+      double psnr = 20*Math.log10(1000000) - 10*Math.log10(mse);
+      System.out.printf("%4d: %10f\t%10f\n", i, psnr, mse);
     }
+  }
+  
+  
+  private static double toIntensity(int dt, int d) {
+    return dt != 0 ? ((double) (0x1 << d)) / dt : 0;
   }
 }
