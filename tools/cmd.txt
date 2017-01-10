@@ -1,0 +1,7 @@
+
+ENCODING RAW YUV:
+x264 --crf 25 --input-res 1500x1046 --fps 24 -o out1.mkv out1.yuv
+
+
+PLAYING RAW YUV:
+vlc --rawvid-fps 25 --rawvid-width 1500 --rawvid-height 1046 --demux rawvideo --rawvid-chroma J420 out1.yuv
