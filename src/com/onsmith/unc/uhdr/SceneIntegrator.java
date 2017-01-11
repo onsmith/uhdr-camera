@@ -4,13 +4,13 @@ import java.util.Queue;
 import java.util.PriorityQueue;
 
 public class SceneIntegrator implements Source<PixelFire> {
-  private        final int                  clock;            // Camera clock speed, in hertz
+  private        final int                  clock; // Camera clock speed, in hertz
 	private        final HDRScene             scene;
-	private        final Queue<EmulatorPixel> queue;            // Decides which pixel to fire next
+	private        final Queue<EmulatorPixel> queue; // Decides which pixel to fire next
 
-	private static final double stepsPerTick = 4;                        // Number of substeps for numerical integration
-	private static final int    MAXD         = (int) Math.pow(2, 4) - 1; // Maximum allowable d
-	private static final int    MAXDT        = (int) Math.pow(2, 8) - 1; // Maximum allowable dt
+	private static final double stepsPerTick = 4;              // Number of substeps for numerical integration
+	private static final int    MAXD         = (0x1 << 4) - 1; // Maximum allowable d
+	private static final int    MAXDT        = (0x1 << 8) - 1; // Maximum allowable dt
 	
 	private final double maxDtInSecs;
 	private final double timestep;

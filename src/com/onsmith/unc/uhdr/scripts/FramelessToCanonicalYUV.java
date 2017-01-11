@@ -11,7 +11,7 @@ import com.onsmith.unc.uhdr.PixelFireReader;
 import com.onsmith.unc.uhdr.Source;
 import com.onsmith.unc.uhdr.UhdrFrameStream;
 
-public class GenerateAndSaveFramedUHDRStream {
+public class FramelessToCanonicalYUV {
   private static final int w = 1500, // 717
                            h = 1046; // 500
   
@@ -20,10 +20,10 @@ public class GenerateAndSaveFramedUHDRStream {
     // Source<PixelFire>
     Source<PixelFire> diskStream = new PixelFireReader(new FileInputStream(new File("out/rawHD.data")), w, h);
     
-    // Source<BufferedImage>
+    // Source<IntFrame>
     Source<IntFrame> imageStream = new UhdrFrameStream(diskStream, w, h);
     
-    // Sink<BufferedImage>
+    // Sink<IntFrame>
     CanonicalYUVWriter imageWriter = new CanonicalYUVWriter(new File[] {
       new File("out/out1.yuv"),
       new File("out/out2.yuv"),
@@ -31,7 +31,7 @@ public class GenerateAndSaveFramedUHDRStream {
     });
     
     // Pipe source to sink
-    int numFrames = (int) (100);
+    int numFrames = (int) 1024*10;
     for (int i=0; i<numFrames; i++) {
       imageWriter.send(imageStream.next());
       if (i%10 == 9) {

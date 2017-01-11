@@ -1,6 +1,6 @@
 
 ENCODING RAW YUV:
-x264 --crf 25 --input-res 1500x1046 --fps 24 -o out1.mkv out1.yuv
+x264 --qp 25 --input-res 1500x1046 --fps 24 -o out1.mkv out1.yuv
 
 
 PLAYING RAW YUV:

@@ -784,7 +784,7 @@ public class GenerateAndStoreRaw {
     HDRScene aquarium = new AquariumScene(bg, sprites);
     SceneIntegrator aquariumStream = new SceneIntegrator(clock, aquarium);
     
-    // Sink<BufferedImage>
+    // Sink<PixelFire>
     PixelFireWriter imageWriter = new PixelFireWriter(new FileOutputStream(new File("out/rawHD.data")));
     
     // Pipe source to sink
